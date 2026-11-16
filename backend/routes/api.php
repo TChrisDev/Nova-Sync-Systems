@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\MeController;
 use App\Http\Controllers\Api\V1\ModuleController;
 use App\Http\Controllers\Api\V1\PermissionController;
 use App\Http\Controllers\Api\V1\ProjectController;
+use App\Http\Controllers\Api\V1\RealtimeController;
 use App\Http\Controllers\Api\V1\ReferenceDataController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\SessionController;
@@ -35,6 +36,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('me', MeController::class)->name('me');
         Route::get('dashboard', DashboardController::class)->name('dashboard');
         Route::get('modules', [ModuleController::class, 'index'])->name('modules.index');
+        Route::post('realtime/ticket', [RealtimeController::class, 'ticket'])->name('realtime.ticket');
 
         // Roles y permisos
         Route::get('permissions', [PermissionController::class, 'index'])

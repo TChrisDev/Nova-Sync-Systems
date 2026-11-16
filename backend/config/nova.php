@@ -67,6 +67,32 @@ return [
         'max_backdate_days' => (int) env('NOVA_TIMESHEET_BACKDATE_DAYS', 31),
     ],
 
+    /*
+    | Eventos de dominio → Kafka (patrón transactional outbox).
+    | Cada cambio de negocio se escribe en outbox_events en la misma
+    | transacción, y el servicio "realtime" (modo relay) lo publica en el
+    | tópico <topic_prefix>.<módulo>. Consulta docs/realtime-kafka.md.
+    */
+    'events' => [
+        'enabled' => (bool) env('NOVA_EVENTS_ENABLED', false),
+        'topic_prefix' => env('NOVA_EVENTS_TOPIC_PREFIX', 'nova'),
+        // Días que se conservan en la base los eventos ya publicados.
+        'retention_days' => (int) env('NOVA_EVENTS_RETENTION_DAYS', 7),
+    ],
+
+    /*
+    | Actualizaciones en tiempo real en el navegador (Server-Sent Events
+    | desde el servicio realtime, que consume Kafka).
+    */
+    'realtime' => [
+        // Clave compartida con el servicio realtime para firmar los tickets
+        // (mínimo 32 caracteres). Sin ella, el tiempo real queda apagado.
+        'secret' => env('NOVA_REALTIME_SECRET'),
+        'ticket_ttl' => 60,
+        'stream_max_seconds' => (int) env('NOVA_REALTIME_STREAM_MAX_SECONDS', 900),
+        'stream_path' => '/realtime/stream',
+    ],
+
     'actions' => [
         'view' => 'Consultar',
         'create' => 'Crear',

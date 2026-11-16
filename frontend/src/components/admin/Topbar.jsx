@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
+import { RealtimeContext } from '../../context/RealtimeContext';
 import { Icon } from '../ui/Icon';
 import { Badge } from '../ui/Badge';
 import { useAuth } from '../../hooks/useAuth';
@@ -31,6 +32,8 @@ export function Topbar({ onMenu, sidebarOpen }) {
 
       <div className={styles.spacer} />
 
+      <LiveStatus />
+
       <div className={styles.user}>
         <span className={styles.avatar} aria-hidden="true">
           {initials(user.name)}
@@ -53,5 +56,30 @@ export function Topbar({ onMenu, sidebarOpen }) {
         <span className={styles.logoutLabel}>{leaving ? 'Cerrando…' : 'Cerrar sesión'}</span>
       </button>
     </header>
+  );
+}
+
+const LIVE_LABELS = {
+  connecting: 'Conectando…',
+  live: 'En vivo',
+  reconnecting: 'Reconectando…',
+};
+
+/** Estado del canal en tiempo real; no se muestra si el servidor no lo tiene. */
+function LiveStatus() {
+  const realtime = useContext(RealtimeContext);
+  const status = realtime?.status ?? 'off';
+  if (status === 'off') return null;
+
+  return (
+    <span
+      className={styles.live}
+      data-status={status}
+      role="status"
+      title={status === 'live' ? 'Los datos se actualizan automáticamente' : 'Los datos se actualizarán al reconectar'}
+    >
+      <span className={styles.liveDot} aria-hidden="true" />
+      {LIVE_LABELS[status]}
+    </span>
   );
 }

@@ -49,6 +49,7 @@ export default function RolesPage() {
   const { data, error, loading, reload } = useApiResource(
     (signal) => rolesService.list({ search: debouncedSearch, status, page, per_page: 15 }, { signal }),
     [debouncedSearch, status, page],
+    { live: ['access_control'] },
   );
 
   const roles = data?.data ?? [];

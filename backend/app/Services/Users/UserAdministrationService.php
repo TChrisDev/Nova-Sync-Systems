@@ -10,6 +10,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use App\Services\Authorization\PrivilegeGuard;
+use App\Services\Events\DomainEventRecorder;
 use App\Support\BusinessCalendar;
 use Illuminate\Support\Facades\DB;
 
@@ -181,6 +182,15 @@ class UserAdministrationService
             $id => ['assigned_by' => $actor->getKey(), 'created_at' => now()],
         ])->all());
         $target->flushPermissionCache();
+
+        app(DomainEventRecorder::class)->record(
+            type: 'user.roles_changed',
+            module: 'users',
+            aggregateType: 'user',
+            aggregateId: $target->getKey(),
+            changed: ['roles'],
+            userIds: [$target->getKey()],
+        );
 
         $this->audit->log('user.roles_synced', $actor, $target, [
             'added' => $added->pluck('slug')->values()->all(),

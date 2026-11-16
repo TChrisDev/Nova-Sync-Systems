@@ -1,5 +1,6 @@
 # Imagen web: compila la interfaz React con Vite y la sirve con nginx, que
-# además reenvía /api, /auth, /sanctum y /up al backend (PHP-FPM). El
+# además reenvía /api, /auth, /sanctum y /up al backend (PHP-FPM) y
+# /realtime al gateway de tiempo real. El
 # navegador ve un único origen, así la cookie de sesión funciona sin CORS.
 
 # --- Compilación ----------------------------------------------------------
@@ -20,6 +21,8 @@ FROM nginx:1.27-alpine AS web
 # Dirección del contenedor de PHP-FPM dentro de la red de Docker. La imagen
 # oficial de nginx la reemplaza en la plantilla al arrancar.
 ENV PHP_UPSTREAM=app:9000
+# Gateway del servicio realtime (Server-Sent Events).
+ENV REALTIME_UPSTREAM=realtime-gateway:3001
 
 RUN rm -f /etc/nginx/conf.d/default.conf
 COPY docker/nginx.conf /etc/nginx/templates/default.conf.template

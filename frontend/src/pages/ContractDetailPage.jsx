@@ -34,12 +34,18 @@ export default function ContractDetailPage() {
   const toast = useToast();
   const [version, setVersion] = useState(0); // fuerza recargar consumo e historial tras un cambio
 
-  const contract = useApiResource((signal) => contractsService.get(contractId, { signal }), [contractId, version]);
-  const consumption = useApiResource((signal) => contractsService.consumption(contractId, { months: 6 }, { signal }), [contractId, version]);
+  const contract = useApiResource((signal) => contractsService.get(contractId, { signal }), [contractId, version], { live: ['clients'] });
+  const consumption = useApiResource((signal) => contractsService.consumption(contractId, { months: 6 }, { signal }), [contractId, version], {
+    live: ['clients', 'timesheets'],
+  });
   const isBag = contract.data?.billing_model.value === 'hour_bag';
-  const movements = useApiResource((signal) => (isBag ? contractsService.movements(contractId, { signal }) : Promise.resolve(null)), [contractId, version, isBag]);
+  const movements = useApiResource((signal) => (isBag ? contractsService.movements(contractId, { signal }) : Promise.resolve(null)), [contractId, version, isBag], {
+    live: ['clients'],
+  });
   const canSeeProjects = can('projects.view') || can('projects.lead');
-  const projects = useApiResource((signal) => (canSeeProjects ? contractsService.projects(contractId, { signal }) : Promise.resolve(null)), [contractId, canSeeProjects]);
+  const projects = useApiResource((signal) => (canSeeProjects ? contractsService.projects(contractId, { signal }) : Promise.resolve(null)), [contractId, canSeeProjects], {
+    live: ['projects'],
+  });
   useDocumentTitle(contract.data ? contract.data.name : 'Contrato');
 
   const [modal, setModal] = useState(null); // 'status' | 'movement' | 'edit' | 'delete' | 'project'

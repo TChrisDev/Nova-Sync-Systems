@@ -10,12 +10,12 @@ export function CallToAction() {
             ¿Ya tienes una cuenta autorizada?
           </h2>
           <p className={styles.text}>
-            Ingresa con tu usuario corporativo de Microsoft 365. Si aún no tienes acceso, solicítalo al administrador del
+            Ingresa con tu usuario corporativo de Microsoft 365 o Google Workspace. Si aún no tienes acceso, solicítalo al administrador del
             sistema de tu organización.
           </p>
         </div>
-        <Button to="/login" size="lg" icon="microsoft" className={styles.button}>
-          Ingresar con Microsoft 365
+        <Button to="/login" size="lg" icon="arrow" className={styles.button}>
+          Ingresar con tu cuenta corporativa
         </Button>
       </div>
     </section>

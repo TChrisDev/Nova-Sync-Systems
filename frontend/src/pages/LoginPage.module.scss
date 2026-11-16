@@ -101,7 +101,9 @@
   color: color('success');
 }
 
-.microsoft {
+.providers {
+  display: grid;
+  gap: space('3');
   margin-top: space('1');
 }
 

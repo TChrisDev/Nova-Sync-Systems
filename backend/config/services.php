@@ -43,6 +43,20 @@ return [
         'clock_leeway' => (int) env('MICROSOFT_CLOCK_LEEWAY', 120),
     ],
 
+    /*
+    | Google Workspace — OpenID Connect, flujo Authorization Code con PKCE.
+    | Solo se aceptan cuentas administradas de los dominios listados en
+    | GOOGLE_WORKSPACE_DOMAINS (claim "hd"). Consulta docs/google-workspace-setup.md.
+    */
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+        'workspace_domains' => env('GOOGLE_WORKSPACE_DOMAINS', ''),
+        'jwks_cache_ttl' => (int) env('GOOGLE_JWKS_CACHE_TTL', 21600),
+        'clock_leeway' => (int) env('GOOGLE_CLOCK_LEEWAY', 120),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

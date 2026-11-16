@@ -17,13 +17,15 @@ use Illuminate\Support\Collection;
 
 /**
  * Usuario corporativo. No almacena contraseñas: la identidad la confirma
- * Microsoft Entra ID y aquí solo se gestiona la autorización.
+ * Microsoft Entra ID o Google Workspace y aquí solo se gestiona la autorización.
  *
  * @property int $id
  * @property string $name
  * @property string $email
  * @property string|null $microsoft_oid
  * @property string|null $microsoft_tenant_id
+ * @property string|null $google_sub
+ * @property string|null $google_hosted_domain
  * @property bool $is_active
  * @property \Illuminate\Support\Carbon|null $last_login_at
  * @property \Illuminate\Support\Carbon|null $deleted_at

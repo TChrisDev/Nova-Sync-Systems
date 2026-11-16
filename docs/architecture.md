@@ -8,15 +8,16 @@ Navegador (React SPA)
    │                /api/*, /auth/*, /sanctum/* → Laravel
    ▼
 Laravel (API REST v1)
-   ├── Autenticación: Microsoft Entra ID (OIDC) → sesión Laravel (cookie HttpOnly)
+   ├── Autenticación: Microsoft Entra ID o Google Workspace (OIDC) → sesión Laravel (cookie HttpOnly)
    ├── Autorización: roles → permisos (<módulo>.<acción>) → módulos
    ├── Servicios de dominio + Policies + Form Requests + API Resources
-   └── PostgreSQL
+   ├── PostgreSQL (incluida la bandeja de salida outbox_events)
+   └── servicio realtime: relay → Apache Kafka → gateway SSE → navegador
 ```
 
 **Separación de responsabilidades**
 
-- *Autenticación (quién es):* Microsoft Entra ID. Laravel solo valida el id_token y vincula la identidad (`oid`) con un usuario autorizado.
+- *Autenticación (quién es):* Microsoft Entra ID o Google Workspace. Laravel solo valida el id_token y vincula la identidad (`oid` o `sub`) con un usuario autorizado.
 - *Autorización (qué puede hacer):* Nova, en el servidor, en cada petición. El frontend usa los permisos solo para adaptar la interfaz.
 
 ## 2. Decisiones técnicas
@@ -81,7 +82,8 @@ Base: `/api/v1`. Autenticación por cookie de sesión. Las operaciones de escrit
 
 | Método | Ruta | Permiso | Descripción |
 | --- | --- | --- | --- |
-| GET | `/auth/config` | público | Indica si el inicio de sesión con Microsoft está configurado. |
+| GET | `/auth/config` | público | Proveedores de inicio de sesión (Microsoft, Google) y si cada uno está configurado. |
+| POST | `/realtime/ticket` | sesión | Ticket firmado (60 s, un solo uso) para abrir `/realtime/stream`. 503 si el tiempo real no está habilitado. |
 | POST | `/auth/logout` | sesión | Cierra la sesión. |
 | GET | `/me` | sesión | Usuario, permisos efectivos y módulos visibles. |
 | GET | `/dashboard` | sesión | Indicadores reales (cada bloque según permisos). |
@@ -101,7 +103,7 @@ Base: `/api/v1`. Autenticación por cookie de sesión. Las operaciones de escrit
 | DELETE | `/users/{id}` | `users.delete` | Eliminar la cuenta: pierde el acceso y sale de las listas; su historial se conserva. |
 | GET | `/audit-logs` | `audit.view` | Registro de auditoría (`action`, `page`). |
 
-Rutas web del flujo OIDC: `GET /auth/microsoft/redirect`, `GET /auth/microsoft/callback` (limitadas a 20 solicitudes por minuto por IP). La API está limitada a 120 solicitudes por minuto por usuario.
+Rutas web del flujo OIDC: `GET /auth/microsoft/redirect`, `GET /auth/microsoft/callback`, `GET /auth/google/redirect`, `GET /auth/google/callback` (limitadas a 20 solicitudes por minuto por IP). La API está limitada a 120 solicitudes por minuto por usuario.
 
 **Respuestas**
 
@@ -194,3 +196,15 @@ Decisiones particulares:
 | Consultas portables | Las mismas consultas funcionan en PostgreSQL (producción) y SQLite (pruebas). Las pruebas se ejecutan en ambas. |
 
 Detalle de datos, permisos, reglas, endpoints y datos de demostración: [projects-module.md](projects-module.md).
+
+## 9. Eventos de dominio y tiempo real
+
+| Decisión | Motivo |
+| --- | --- |
+| Outbox transaccional en lugar de publicar desde PHP | El evento se confirma o se revierte con el cambio, Kafka caído no bloquea ni pierde nada y PHP no necesita `rdkafka`. |
+| Eventos como avisos (ids, nombres de campos) y no como copias | Ningún consumidor recibe costos ni datos personales: el dato se pide a la API, que aplica los permisos. |
+| Server-Sent Events en lugar de WebSockets | El flujo es solo del servidor al navegador; SSE viaja por HTTP normal, pasa por nginx y reconecta solo. |
+| Tickets HMAC de un solo uso, con vida máxima de 15 min | El gateway no consulta la base de datos ni la sesión; Laravel vuelve a revisar sesión y permisos en cada reconexión. |
+| Entrega por módulo completo o por persona involucrada | Un consultor ve al instante sus horas aprobadas sin recibir avisos de todo el módulo. |
+
+Detalle de tópicos, formato y operación: [realtime-kafka.md](realtime-kafka.md).

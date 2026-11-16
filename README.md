@@ -1,12 +1,13 @@
 # Nova Sync Systems — ERP empresarial
 
-Plataforma ERP modular con control de acceso por roles y permisos e inicio de sesión corporativo con Microsoft 365 (Microsoft Entra ID).
+Plataforma ERP modular con control de acceso por roles y permisos, inicio de sesión corporativo con Microsoft 365 (Microsoft Entra ID) o Google Workspace, y actualizaciones en tiempo real con Apache Kafka.
 
 | Capa | Tecnología |
 | --- | --- |
 | Frontend | React 19, React Router 8, Sass (CSS Modules), Vite 8 |
 | Backend | Laravel 13 (PHP 8.3+), API REST, Laravel Sanctum (sesión SPA), Laravel Socialite |
-| Autenticación | Microsoft Entra ID — OpenID Connect, Authorization Code + PKCE |
+| Autenticación | Microsoft Entra ID y Google Workspace — OpenID Connect, Authorization Code + PKCE |
+| Eventos y tiempo real | Apache Kafka (outbox transaccional) + servicio Node.js `realtime/` (relay y gateway Server-Sent Events) |
 | Base de datos | PostgreSQL 15+ (recomendada) · SQLite para desarrollo rápido y pruebas |
 
 ---
@@ -15,12 +16,13 @@ Plataforma ERP modular con control de acceso por roles y permisos e inicio de se
 
 ```
 nova-soft-systems/
-├── docker-compose.yml       web (nginx) + app (PHP-FPM) + scheduler + db (PostgreSQL)
+├── docker-compose.yml       web (nginx) + app (PHP-FPM) + scheduler + db (PostgreSQL) + kafka + realtime-relay + realtime-gateway
 ├── .env.docker.example      Variables para Docker (se copia como .env)
 ├── backend/                 API Laravel (Dockerfile y docker/php/ para la imagen)
 │   ├── app/
-│   │   ├── Auth/EntraId/        Proveedor OIDC, validación del id_token, configuración
-│   │   ├── Console/Commands/    nova:super-admin, nova:sync-permissions, nova:setup-projects, nova:contracts-renew, nova:demo
+│   │   ├── Auth/EntraId/        Proveedor OIDC de Microsoft, validación del id_token, configuración
+│   │   ├── Auth/Google/         Proveedor OIDC de Google Workspace (dominio "hd" obligatorio)
+│   │   ├── Console/Commands/    nova:super-admin, nova:sync-permissions, nova:setup-projects, nova:contracts-renew, nova:demo, nova:outbox-prune
 │   │   ├── Enums/               Estados y catálogos del negocio (líneas de servicio, cobro, cobertura...)
 │   │   ├── Exceptions/          Reglas de negocio con códigos de error estables
 │   │   ├── Http/Controllers/    Api/V1/* y Auth/MicrosoftAuthController
@@ -28,29 +30,33 @@ nova-soft-systems/
 │   │   ├── Http/Requests/       Validación (Form Requests)
 │   │   ├── Http/Resources/      Respuestas JSON consistentes
 │   │   ├── Http/Support/        Formato uniforme de errores de la API
-│   │   ├── Models/              Acceso (User, Role, Permission, Module, AuditLog) y proyectos (Client, Contract, Project, TimeEntry...)
+│   │   ├── Models/              Acceso (User, Role, Permission, Module, AuditLog), proyectos (Client, Contract, Project, TimeEntry...) y OutboxEvent
+│   │   ├── Observers/           DomainEventObserver: cada cambio de negocio deja un evento para Kafka
 │   │   ├── Policies/            Roles, usuarios, clientes, contratos, proyectos y horas
-│   │   ├── Services/            Roles, usuarios, autorización, auditoría, login, contratos, horas, asignaciones, demo
+│   │   ├── Services/            Roles, usuarios, autorización, auditoría, login, contratos, horas, asignaciones, eventos, tiempo real, demo
 │   │   └── Support/             Calendario del negocio (zona horaria de Colombia)
 │   ├── config/nova.php          Catálogo de módulos y acciones (fuente de verdad de permisos)
 │   ├── database/migrations/     Usuarios, módulos, permisos, roles, auditoría, sedes, clientes, contratos, proyectos, horas
 │   ├── lang/es/                 Mensajes de validación en español
-│   └── tests/                   162 pruebas (autenticación, autorización, roles, usuarios, clientes, contratos, proyectos, capacidad, comandos)
+│   └── tests/                   188 pruebas (autenticación Microsoft y Google, autorización, roles, usuarios, clientes, contratos, proyectos, capacidad, eventos, tiempo real, comandos)
 ├── frontend/                Aplicación React (Dockerfile y docker/nginx.conf para la imagen)
 │   └── src/
 │       ├── components/          ui/ (reutilizables), landing/, admin/, roles/, users/, brand/
 │       ├── config/              Constantes, catálogo público de módulos, navegación
-│       ├── context/             AuthContext (sesión y permisos), ToastContext
-│       ├── hooks/               useAuth, useApiResource, useDebouncedValue, ...
+│       ├── context/             AuthContext (sesión y permisos), RealtimeContext (canal SSE), ToastContext
+│       ├── hooks/               useAuth, useApiResource (con refresco en vivo), useLiveRefresh, useDebouncedValue, ...
 │       ├── layouts/             AdminLayout (sidebar + barra superior)
 │       ├── pages/               Landing, Login, Panel, Módulos, Roles, Usuarios, Auditoría
 │       ├── routes/              Router, rutas protegidas y por permiso
 │       ├── services/            Cliente HTTP (cookies + CSRF) y servicios por recurso
 │       ├── styles/              Tokens, funciones, mixins y estilos base (Sass)
 │       └── utils/               Formato, validaciones, mensajes
+├── realtime/                Servicio Node.js: relay (outbox → Kafka) y gateway (Kafka → navegador por SSE)
 └── docs/
     ├── architecture.md      Decisiones técnicas, modelo de datos y API
     ├── entra-id-setup.md    Registro de la aplicación en Microsoft Entra ID
+    ├── google-workspace-setup.md  Cliente OAuth de Google Workspace
+    ├── realtime-kafka.md    Eventos de dominio, tópicos de Kafka y tiempo real
     ├── projects-module.md   Módulo de Proyectos y Capacidad: datos, permisos, reglas y API
     └── docker.md            Ejecución con Docker Compose
 ```
@@ -61,7 +67,8 @@ nova-soft-systems/
 - Composer 2.
 - Node.js 22.22 o superior y npm.
 - PostgreSQL 15 o superior (o SQLite para una prueba local).
-- Un tenant de Microsoft 365 con permisos para registrar aplicaciones en Microsoft Entra ID.
+- Un tenant de Microsoft 365 con permisos para registrar aplicaciones en Microsoft Entra ID, o un Google Workspace con acceso a Google Cloud Console (o ambos).
+- Opcional, para el tiempo real: Apache Kafka 3.x (Docker lo incluye).
 
 ## 3. Instalación
 
@@ -114,6 +121,10 @@ Sigue [docs/entra-id-setup.md](docs/entra-id-setup.md) y completa en `backend/.e
 
 Mientras estas variables no estén completas, la pantalla de acceso lo indica y el botón de Microsoft permanece deshabilitado; el sistema nunca simula un inicio de sesión.
 
+### Google Workspace (opcional)
+
+Sigue [docs/google-workspace-setup.md](docs/google-workspace-setup.md) y completa `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` y `GOOGLE_WORKSPACE_DOMAINS` (obligatorio: solo se aceptan cuentas administradas de esos dominios). La pantalla de acceso muestra un botón por cada proveedor configurado.
+
 ## 5. Aprovisionar el primer Super Admin
 
 No existen usuarios ni contraseñas predeterminadas. Desde la consola del servidor:
@@ -123,7 +134,7 @@ cd backend
 php artisan nova:super-admin director.ti@tuempresa.com --name="Nombre Apellido"
 ```
 
-El comando pide confirmación, autoriza la cuenta y le asigna el rol de sistema **Super Admin**. La persona ingresa con su cuenta de Microsoft 365; en ese primer ingreso se vincula su identidad (`oid` de Entra ID). El correo debe coincidir con su usuario (UPN) de Microsoft 365.
+El comando pide confirmación, autoriza la cuenta y le asigna el rol de sistema **Super Admin**. La persona ingresa con su cuenta de Microsoft 365 o de Google Workspace; en ese primer ingreso se vincula su identidad (`oid` de Entra ID o `sub` de Google). El correo debe coincidir con su usuario corporativo.
 
 Después, el Super Admin autoriza al resto de cuentas desde **Usuarios → Autorizar cuenta** y les asigna roles.
 
@@ -137,17 +148,20 @@ cd backend && php artisan serve          # http://localhost:8000
 cd frontend && npm run dev               # http://localhost:5173
 ```
 
-Abre **http://localhost:5173**. Vite reenvía `/api`, `/auth` y `/sanctum` a Laravel, de modo que el navegador trabaja con un solo origen y la cookie de sesión funciona sin CORS.
+Abre **http://localhost:5173**. Vite reenvía `/api`, `/auth` y `/sanctum` a Laravel (y `/realtime` al gateway, si está corriendo), de modo que el navegador trabaja con un solo origen y la cookie de sesión funciona sin CORS.
+
+El tiempo real es opcional en desarrollo: sin Kafka ni el servicio `realtime/`, el ERP funciona igual, sin refrescos automáticos. Para activarlo, ver [docs/realtime-kafka.md](docs/realtime-kafka.md#5-desarrollo-sin-docker).
 
 ### Con Docker
 
-Todo el ERP (interfaz, API, programador de tareas y PostgreSQL) se levanta con `docker compose up -d --build` en `http://localhost:8080`, sin instalar PHP ni Node. Pasos, seguridad y uso en servidor en [docs/docker.md](docs/docker.md).
+Todo el ERP (interfaz, API, programador de tareas, PostgreSQL, Kafka y el servicio de tiempo real) se levanta con `docker compose up -d --build` en `http://localhost:8080`, sin instalar PHP ni Node. Pasos, seguridad y uso en servidor en [docs/docker.md](docs/docker.md).
 
 ## 7. Pruebas y compilación
 
 ```bash
 cd backend && php artisan test           # o: composer test
 cd frontend && npm run build             # genera frontend/dist
+cd realtime && npm test                  # relay, gateway, tickets y reglas de entrega
 ```
 
 ## 8. Producción (resumen)
@@ -156,9 +170,10 @@ cd frontend && npm run build             # genera frontend/dist
 - HTTPS obligatorio, `APP_ENV=production`, `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`, `SESSION_ENCRYPT=true`.
 - Redirect URI de producción registrado en Entra ID (p. ej. `https://erp.tuempresa.com/auth/microsoft/callback`).
 - En cada despliegue: `php artisan migrate --force && php artisan nova:sync-permissions && php artisan optimize`.
-- Programador de tareas activo (`* * * * * php artisan schedule:run`): abre cada mes de las mensualidades (`nova:contracts-renew`).
+- Programador de tareas activo (`* * * * * php artisan schedule:run`): abre cada mes de las mensualidades (`nova:contracts-renew`) y limpia los eventos ya publicados (`nova:outbox-prune`).
+- Kafka con réplicas, una sola réplica de `realtime-relay` y `NOVA_REALTIME_SECRET` larga y aleatoria. Ver [docs/realtime-kafka.md](docs/realtime-kafka.md#6-producción).
 - Nunca ejecutes `nova:demo` en producción (el comando se niega a hacerlo).
-- Rota el secreto de cliente antes de su vencimiento (Entra ID lo exige).
+- Rota el secreto de cliente antes de su vencimiento (Entra ID lo exige) y registra el Redirect URI de producción también en Google Cloud si usas Google Workspace.
 
 ## 9. Módulo de Proyectos y Capacidad
 
@@ -196,7 +211,9 @@ Todo lo de la demo es ficticio, usa el dominio `@demo.nexus.test` (esas cuentas 
 **Implementado y verificado**
 
 - Landing page completa (navbar, hero con mapa de módulos, presentación, características, arquitectura modular, seguridad y acceso, llamada a la acción, footer), responsive y navegable con teclado.
-- Pantalla de acceso con el flujo oficial de Microsoft (sin formularios de contraseña) y mensajes para cada error de autenticación.
+- Pantalla de acceso con los flujos oficiales de Microsoft 365 y Google Workspace (sin formularios de contraseña) y mensajes para cada error de autenticación.
+- Integración OIDC con Google Workspace: PKCE, `state`, `nonce`, firma con JWKS de Google, emisor, audiencia, correo verificado y dominio de Workspace (`hd`) obligatorio; vinculación por `sub`.
+- Eventos de dominio en Kafka con outbox transaccional, servicio `realtime/` (relay y gateway SSE con tickets firmados) y refresco automático de las pantallas según los permisos de cada persona.
 - Backend: modelo de usuarios, módulos, permisos, roles y auditoría; API REST v1; validación con Form Requests; Policies, middleware y reglas contra escalada de privilegios; protección del último Super Admin; auditoría de operaciones sensibles; errores JSON uniformes.
 - Integración OIDC con Entra ID: PKCE, `state`, `nonce`, validación de firma (JWKS con rotación de claves), emisor, audiencia y tenant; vinculación por `oid`.
 - Panel administrativo: sidebar por permisos, barra superior con el usuario, panel con indicadores reales, catálogo de módulos, gestión de roles (crear, editar, activar/desactivar, buscar, filtrar, matriz de permisos con confirmación), gestión de usuarios (autorizar, asignar roles, activar/desactivar, eliminar conservando el historial) y auditoría.
@@ -207,7 +224,6 @@ Todo lo de la demo es ficticio, usa el dominio `@demo.nexus.test` (esas cuentas 
 
 - El equipo ya probó el flujo con Microsoft contra su tenant (en Windows, con las pruebas del backend aprobadas). Queda repetir esa prueba con el Super Admin aprovisionado y con las plantillas de roles del módulo de proyectos.
 - Pantallas de Registro de horas (mis horas, aprobaciones y tablero de rentabilidad).
-- Confirmar `npm run build` con Vite en un equipo con acceso a npm (en el entorno de desarrollo se compiló con esbuild; ver «Verificación realizada»).
 - Los módulos Finanzas, Inventario, Compras, Ventas, Talento humano y Reportes se retiraron del alcance y de la interfaz.
 - Pruebas automatizadas del frontend (no se añadieron dependencias de testing para mantener el proyecto liviano).
 
@@ -215,5 +231,5 @@ Todo lo de la demo es ficticio, usa el dominio `@demo.nexus.test` (esas cuentas 
 
 El entorno donde se desarrolló no tenía acceso a Packagist ni al registro de npm. Por eso:
 
-- **Backend:** se instalaron las dependencias reales (Laravel 13.38, Sanctum 4.3, Socialite 5.31, PHPUnit 12.5) clonando sus versiones publicadas desde GitHub. Con ellas se ejecutaron las migraciones, los comandos y **las 162 pruebas (890 aserciones), todas exitosas tanto en SQLite como en PostgreSQL 16**. `nova:demo` se ejecutó en ambas bases de datos. No se incluye `composer.lock`: se generará con `composer install`.
+- **Backend:** se instalaron las dependencias reales (Laravel 13.38, Sanctum 4.3, Socialite 5.31, PHPUnit 12.5) clonando sus versiones publicadas desde GitHub. Con ellas se ejecutaron las migraciones, los comandos y **las 162 pruebas (890 aserciones), todas exitosas tanto en SQLite como en PostgreSQL 16**. `nova:demo` se ejecutó en ambas bases de datos. `composer.lock` está incluido en el repositorio.
 - **Frontend:** todo el código y los estilos se compilaron sin errores con esbuild y un compilador de Sass compatible con Dart Sass, en lugar de Vite. Con esa compilación, conectada a la API Laravel real, se revisó la interfaz en navegador (escritorio y móvil) y se ejecutó un flujo completo: redirección de rutas protegidas, creación y validación de roles, asignación de permisos con confirmación, asignación de roles, desactivación de usuarios, auditoría y cierre de sesión (cookies de sesión y CSRF reales). **`npm run build` con Vite no se pudo ejecutar en ese entorno.**

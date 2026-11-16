@@ -4,7 +4,7 @@ import { Logo } from '../components/brand/Logo';
 import { Button } from '../components/ui/Button';
 import { Icon } from '../components/ui/Icon';
 import { Spinner } from '../components/ui/Spinner';
-import { MICROSOFT_LOGIN_PATH, NEXT_PATH_KEY } from '../config/app';
+import { LOGIN_PROVIDERS, NEXT_PATH_KEY } from '../config/app';
 import { useAuth } from '../hooks/useAuth';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { authService } from '../services/authService';
@@ -20,8 +20,8 @@ export default function LoginPage() {
   useDocumentTitle('Ingresar');
   const auth = useAuth();
   const [params] = useSearchParams();
-  const [config, setConfig] = useState({ loading: true, configured: null, error: null });
-  const [redirecting, setRedirecting] = useState(false);
+  const [config, setConfig] = useState({ loading: true, configured: null, providers: [], error: null });
+  const [redirecting, setRedirecting] = useState(null);
 
   const errorCode = params.get('error');
   const loggedOut = params.get('logged_out') === '1';
@@ -35,8 +35,11 @@ export default function LoginPage() {
     let active = true;
     authService
       .config()
-      .then((data) => active && setConfig({ loading: false, configured: data.configured, error: null }))
-      .catch((error) => active && setConfig({ loading: false, configured: null, error }));
+      .then(
+        (data) =>
+          active && setConfig({ loading: false, configured: data.configured, providers: data.providers ?? [], error: null }),
+      )
+      .catch((error) => active && setConfig({ loading: false, configured: null, providers: [], error }));
     return () => {
       active = false;
     };
@@ -46,19 +49,24 @@ export default function LoginPage() {
     return <Navigate to={next ?? '/app'} replace />;
   }
 
-  function startLogin() {
-    setRedirecting(true);
+  function startLogin(provider) {
+    setRedirecting(provider.id);
     try {
       if (next) sessionStorage.setItem(NEXT_PATH_KEY, next);
     } catch {
       // Almacenamiento no disponible: se ingresa al panel principal.
     }
     // Navegación completa: Laravel inicia el flujo OAuth 2.0 / OpenID Connect.
-    window.location.assign(MICROSOFT_LOGIN_PATH);
+    window.location.assign(provider.path);
   }
 
   const message = authErrorMessage(errorCode);
-  const unavailable = config.configured === false || Boolean(config.error);
+  const isConfigured = (id) => config.providers.some((p) => p.id === id && p.configured);
+  // Mientras se consulta la configuración se muestran los dos botones
+  // deshabilitados; luego solo los proveedores listos en el servidor.
+  const providers = config.loading || config.configured === false || config.error
+    ? LOGIN_PROVIDERS
+    : LOGIN_PROVIDERS.filter((p) => isConfigured(p.id));
 
   return (
     <div className={styles.page}>
@@ -78,8 +86,8 @@ export default function LoginPage() {
             Ingresa a Nova Sync Systems
           </h1>
           <p className={styles.text}>
-            Usa tu cuenta corporativa de Microsoft 365. Te llevaremos a la página oficial de Microsoft: tu contraseña nunca se
-            escribe ni se guarda en este sistema.
+            Usa tu cuenta corporativa de Microsoft 365 o de Google Workspace. Te llevaremos a la página oficial de tu proveedor:
+            tu contraseña nunca se escribe ni se guarda en este sistema.
           </p>
 
           {message && (
@@ -100,8 +108,8 @@ export default function LoginPage() {
             <div className={styles.warning} role="status">
               <Icon name="info" size={18} />
               <p>
-                El inicio de sesión con Microsoft 365 aún no está configurado en el servidor. Consulta la guía de configuración de
-                Microsoft Entra ID del proyecto.
+                El inicio de sesión corporativo aún no está configurado en el servidor. Consulta las guías de Microsoft Entra ID y
+                de Google Workspace del proyecto.
               </p>
             </div>
           )}
@@ -113,18 +121,22 @@ export default function LoginPage() {
             </div>
           )}
 
-          <Button
-            size="lg"
-            variant="secondary"
-            block
-            icon="microsoft"
-            className={styles.microsoft}
-            onClick={startLogin}
-            loading={redirecting}
-            disabled={config.loading || unavailable}
-          >
-            {redirecting ? 'Redirigiendo a Microsoft…' : 'Ingresar con Microsoft 365'}
-          </Button>
+          <div className={styles.providers}>
+            {providers.map((provider) => (
+              <Button
+                key={provider.id}
+                size="lg"
+                variant="secondary"
+                block
+                icon={provider.icon}
+                onClick={() => startLogin(provider)}
+                loading={redirecting === provider.id}
+                disabled={config.loading || !isConfigured(provider.id) || Boolean(redirecting)}
+              >
+                {redirecting === provider.id ? 'Redirigiendo…' : `Ingresar con ${provider.name}`}
+              </Button>
+            ))}
+          </div>
 
           {config.loading && (
             <p className={styles.checking}>

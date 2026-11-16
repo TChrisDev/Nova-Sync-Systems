@@ -16,8 +16,10 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'is_active' => $this->is_active,
-            // Indica si ya ingresó al menos una vez con Microsoft 365 (no expone el identificador).
+            // Indican si ya ingresó al menos una vez con cada proveedor (no exponen el identificador).
             'microsoft_linked' => $this->microsoft_oid !== null,
+            // Un usuario recién creado no trae la columna hasta recargarse.
+            'google_linked' => ($this->resource->getAttributes()['google_sub'] ?? null) !== null,
             'is_super_admin' => $this->whenLoaded('roles', fn () => $this->roles->contains(
                 fn (Role $role) => $role->isSuperAdmin() && $role->is_active
             )),

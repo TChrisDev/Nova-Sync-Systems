@@ -34,7 +34,7 @@ export function Footer() {
       </div>
       <div className={styles.bottom}>
         <p>© {year} Nova Sync Systems. Todos los derechos reservados.</p>
-        <p>Microsoft 365 y Microsoft Entra ID son marcas de Microsoft Corporation.</p>
+        <p>Microsoft 365 y Microsoft Entra ID son marcas de Microsoft Corporation. Google Workspace es una marca de Google LLC.</p>
       </div>
     </footer>
   );

@@ -113,3 +113,45 @@
     @include visually-hidden;
   }
 }
+
+// Estado del canal en tiempo real.
+.live {
+  display: none;
+  align-items: center;
+  gap: space('2');
+  padding: space('1') space('3');
+  border-radius: 999px;
+  background: color('warning-soft');
+  color: color('warning');
+  font-size: font-size('xs');
+  font-weight: 600;
+  white-space: nowrap;
+
+  &[data-status='live'] {
+    background: color('success-soft');
+    color: color('success');
+  }
+
+  @include up('sm') {
+    display: inline-flex;
+  }
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+
+  @include motion-safe {
+    .live[data-status='live'] & {
+      animation: live-pulse 2s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes live-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}

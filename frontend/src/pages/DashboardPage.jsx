@@ -28,7 +28,9 @@ function Metric({ label, value, detail }) {
 export default function DashboardPage() {
   useDocumentTitle('Panel');
   const { user, modules } = useAuth();
-  const { data, error, loading, reload } = useApiResource((signal) => catalogService.dashboard({ signal }), []);
+  const { data, error, loading, reload } = useApiResource((signal) => catalogService.dashboard({ signal }), [], {
+    live: ['clients', 'projects', 'timesheets', 'users', 'access_control'],
+  });
   const myModules = modules.filter((m) => m.can_access && MODULE_ROUTES[m.code]);
 
   return (

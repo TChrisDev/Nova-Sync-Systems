@@ -51,6 +51,7 @@ export default function ClientsPage() {
   const { data, error, loading, reload } = useApiResource(
     (signal) => clientsService.list({ search: debouncedSearch, sector, site_id: site, status, page, per_page: 15 }, { signal }),
     [debouncedSearch, sector, site, status, page],
+    { live: ['clients'] },
   );
 
   const clients = data?.data ?? [];

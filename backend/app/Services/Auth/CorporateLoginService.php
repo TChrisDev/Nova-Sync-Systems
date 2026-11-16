@@ -2,30 +2,36 @@
 
 namespace App\Services\Auth;
 
+use App\Auth\CorporateIdentity;
 use App\Auth\EntraId\AuthenticationFailed;
-use App\Auth\EntraId\EntraIdentity;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Traduce una identidad validada de Microsoft 365 en un usuario del ERP.
+ * Traduce una identidad corporativa validada (Microsoft 365 o Google
+ * Workspace) en un usuario del ERP.
  *
- * Autenticación (quién es) la resuelve Entra ID; aquí solo se decide si esa
- * cuenta está autorizada para ingresar. Los roles y permisos se evalúan
- * después, en cada petición.
+ * La autenticación (quién es) la resuelve el proveedor; aquí solo se decide
+ * si esa cuenta está autorizada para ingresar. Los roles y permisos se
+ * evalúan después, en cada petición.
+ *
+ * Una misma persona puede ingresar con los dos proveedores: cada uno guarda
+ * su identificador en su propia columna y ambos se encuentran por el correo
+ * autorizado la primera vez.
  */
-class MicrosoftLoginService
+class CorporateLoginService
 {
     public function __construct(private readonly AuditLogger $audit) {}
 
-    public function resolveUser(EntraIdentity $identity): User
+    public function resolveUser(CorporateIdentity $identity): User
     {
         try {
             return DB::transaction(fn () => $this->resolve($identity));
         } catch (AuthenticationFailed $e) {
             $this->audit->log('auth.login_rejected', null, null, [
-                'email' => $identity->email,
+                'email' => $identity->email(),
+                'provider' => $identity->provider(),
                 'reason' => $e->reason,
             ]);
 
@@ -33,25 +39,29 @@ class MicrosoftLoginService
         }
     }
 
-    private function resolve(EntraIdentity $identity): User
+    private function resolve(CorporateIdentity $identity): User
     {
-        $this->assertAllowedDomain($identity->email);
+        $column = $identity->subjectColumn();
+        $subject = $identity->subject();
+        $email = $identity->email();
 
-        $user = User::query()->where('microsoft_oid', $identity->objectId)->first();
+        $this->assertAllowedDomain($email);
+
+        $user = User::query()->where($column, $subject)->first();
 
         if (! $user) {
-            $user = User::query()->where('email', $identity->email)->first();
+            $user = User::query()->where('email', $email)->first();
 
-            if ($user && $user->microsoft_oid && $user->microsoft_oid !== $identity->objectId) {
-                // El correo ya está vinculado a otra identidad de Microsoft.
-                throw new AuthenticationFailed(AuthenticationFailed::ACCOUNT_MISMATCH, 'OID distinto para el mismo correo.');
+            if ($user && $user->{$column} && $user->{$column} !== $subject) {
+                // El correo ya está vinculado a otra identidad de este proveedor.
+                throw new AuthenticationFailed(AuthenticationFailed::ACCOUNT_MISMATCH, "Identificador de {$identity->provider()} distinto para el mismo correo.");
             }
         }
 
         // Una cuenta eliminada no vuelve a entrar por su cuenta, ni siquiera
         // con el registro automático activo: un administrador debe autorizarla.
         if (! $user && User::onlyTrashed()
-            ->where(fn ($q) => $q->where('microsoft_oid', $identity->objectId)->orWhere('email', $identity->email))
+            ->where(fn ($q) => $q->where($column, $subject)->orWhere('email', $email))
             ->exists()) {
             throw new AuthenticationFailed(AuthenticationFailed::NOT_AUTHORIZED, 'La cuenta fue eliminada.');
         }
@@ -61,9 +71,9 @@ class MicrosoftLoginService
                 throw new AuthenticationFailed(AuthenticationFailed::NOT_AUTHORIZED, 'Cuenta no autorizada previamente.');
             }
 
-            $user = new User(['email' => $identity->email, 'name' => $identity->name]);
+            $user = new User(['email' => $email, 'name' => $identity->name()]);
             $user->forceFill(['is_active' => true]);
-            $this->audit->log('user.auto_provisioned', null, null, ['email' => $identity->email]);
+            $this->audit->log('user.auto_provisioned', null, null, ['email' => $email, 'provider' => $identity->provider()]);
         }
 
         if ($user->exists && ! $user->is_active) {
@@ -71,19 +81,18 @@ class MicrosoftLoginService
         }
 
         $emailTaken = User::query()
-            ->where('email', $identity->email)
+            ->where('email', $email)
             ->when($user->exists, fn ($q) => $q->whereKeyNot($user->getKey()))
             ->exists();
 
         $user->forceFill([
-            'name' => $identity->name,
-            'email' => $emailTaken ? $user->email : $identity->email,
-            'microsoft_oid' => $identity->objectId,
-            'microsoft_tenant_id' => $identity->tenantId,
+            'name' => $identity->name(),
+            'email' => $emailTaken ? $user->email : $email,
+            ...$identity->linkAttributes(),
             'last_login_at' => now(),
         ])->save();
 
-        $this->audit->log('auth.login', $user, $user);
+        $this->audit->log('auth.login', $user, $user, ['provider' => $identity->provider()]);
 
         return $user;
     }
