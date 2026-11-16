@@ -55,6 +55,7 @@ export default function UsersPage() {
   const { data, error, loading, reload } = useApiResource(
     (signal) => usersService.list({ search: debouncedSearch, status, role_id: roleFilter, page, per_page: 15 }, { signal }),
     [debouncedSearch, status, roleFilter, page],
+    { live: ['users', 'access_control'] },
   );
 
   const users = data?.data ?? [];
@@ -99,7 +100,7 @@ export default function UsersPage() {
     <>
       <PageHeader
         title="Usuarios"
-        description="Cuentas corporativas autorizadas para ingresar con Microsoft 365, su estado y los roles que tienen asignados."
+        description="Cuentas corporativas autorizadas para ingresar con Microsoft 365 o Google Workspace, su estado y los roles que tienen asignados."
         actions={
           can('users.create') && (
             <Button icon="plus" onClick={() => setAuthorizing(true)}>
@@ -150,7 +151,7 @@ export default function UsersPage() {
             <EmptyState
               icon="users"
               title="Aún no hay cuentas autorizadas"
-              message="Autoriza la primera cuenta corporativa para que pueda ingresar con Microsoft 365."
+              message="Autoriza la primera cuenta corporativa para que pueda ingresar con Microsoft 365 o Google Workspace."
             />
           )
         ) : (
@@ -248,7 +249,7 @@ export default function UsersPage() {
         message={
           toggling?.is_active
             ? `${toggling?.name} no podrá ingresar y sus sesiones abiertas se cerrarán de inmediato. Sus roles se conservan para cuando lo actives de nuevo.`
-            : `${toggling?.name} podrá volver a ingresar con su cuenta de Microsoft 365 y recuperará los permisos de sus roles.`
+            : `${toggling?.name} podrá volver a ingresar con su cuenta corporativa y recuperará los permisos de sus roles.`
         }
         confirmLabel={toggling?.is_active ? 'Desactivar usuario' : 'Activar usuario'}
         tone={toggling?.is_active ? 'danger' : 'primary'}

@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router';
 import { Sidebar } from '../components/admin/Sidebar';
 import { Topbar } from '../components/admin/Topbar';
 import { NEXT_PATH_KEY } from '../config/app';
+import { RealtimeProvider } from '../context/RealtimeContext';
 import styles from './AdminLayout.module.scss';
 
 export default function AdminLayout() {
@@ -10,7 +11,7 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Tras volver de Microsoft, retoma la ruta que el usuario intentaba abrir.
+  // Tras volver del proveedor de identidad, retoma la ruta que el usuario intentaba abrir.
   useEffect(() => {
     try {
       const next = sessionStorage.getItem(NEXT_PATH_KEY);
@@ -33,17 +34,19 @@ export default function AdminLayout() {
   }, [sidebarOpen]);
 
   return (
-    <div className={styles.shell}>
-      <a href="#panel-content" className="skip-link">
-        Saltar al contenido
-      </a>
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className={styles.main}>
-        <Topbar onMenu={() => setSidebarOpen(true)} sidebarOpen={sidebarOpen} />
-        <main id="panel-content" className={styles.content} tabIndex={-1}>
-          <Outlet />
-        </main>
+    <RealtimeProvider>
+      <div className={styles.shell}>
+        <a href="#panel-content" className="skip-link">
+          Saltar al contenido
+        </a>
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <div className={styles.main}>
+          <Topbar onMenu={() => setSidebarOpen(true)} sidebarOpen={sidebarOpen} />
+          <main id="panel-content" className={styles.content} tabIndex={-1}>
+            <Outlet />
+          </main>
+        </div>
       </div>
-    </div>
+    </RealtimeProvider>
   );
 }

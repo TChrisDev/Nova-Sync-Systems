@@ -38,6 +38,7 @@ export default function ContractsPage() {
   const { data, error, loading, reload } = useApiResource(
     (signal) => contractsService.list({ ...query, page: onlyAlerts ? 1 : page, per_page: onlyAlerts ? 100 : 15 }, { signal }),
     [debouncedSearch, filters, page, onlyAlerts],
+    { live: ['clients', 'timesheets'] },
   );
 
   const all = data?.data ?? [];

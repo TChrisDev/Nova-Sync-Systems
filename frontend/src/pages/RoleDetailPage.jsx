@@ -23,7 +23,7 @@ export default function RoleDetailPage() {
   const { can, isSuperAdmin, user } = useAuth();
   const toast = useToast();
 
-  const role = useApiResource((signal) => rolesService.get(roleId, { signal }), [roleId]);
+  const role = useApiResource((signal) => rolesService.get(roleId, { signal }), [roleId], { live: ['access_control'] });
   const catalog = useApiResource((signal) => catalogService.permissions({ signal }), []);
   useDocumentTitle(role.data ? `Rol ${role.data.name}` : 'Rol');
 

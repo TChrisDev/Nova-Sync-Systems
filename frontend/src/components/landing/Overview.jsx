@@ -2,7 +2,7 @@ import { Icon } from '../ui/Icon';
 import styles from './Overview.module.scss';
 
 const CHAIN = [
-  { icon: 'user', title: 'Personas', text: 'Cuentas corporativas de Microsoft 365 autorizadas.' },
+  { icon: 'user', title: 'Personas', text: 'Cuentas corporativas de Microsoft 365 o Google Workspace autorizadas.' },
   { icon: 'key', title: 'Roles', text: 'Agrupan responsabilidades, por ejemplo “Líder de proyecto”.' },
   { icon: 'check', title: 'Permisos', text: 'Acciones concretas: consultar, crear, actualizar, eliminar, administrar.' },
   { icon: 'grid', title: 'Módulos', text: 'Cada proceso de la empresa en su propio espacio.' },

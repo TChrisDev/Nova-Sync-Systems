@@ -29,8 +29,10 @@ export default function ClientDetailPage() {
   const { can } = useAuth();
   const toast = useToast();
 
-  const client = useApiResource((signal) => clientsService.get(clientId, { signal }), [clientId]);
-  const contracts = useApiResource((signal) => contractsService.list({ client_id: clientId, per_page: 100 }, { signal }), [clientId]);
+  const client = useApiResource((signal) => clientsService.get(clientId, { signal }), [clientId], { live: ['clients'] });
+  const contracts = useApiResource((signal) => contractsService.list({ client_id: clientId, per_page: 100 }, { signal }), [clientId], {
+    live: ['clients', 'timesheets'],
+  });
   useDocumentTitle(client.data ? client.data.name : 'Cliente');
 
   const [editing, setEditing] = useState(false);

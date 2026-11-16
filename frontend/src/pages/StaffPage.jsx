@@ -150,6 +150,7 @@ export default function StaffPage() {
   const { data, error, loading, reload } = useApiResource(
     (signal) => staffService.list({ search: debouncedSearch, ...filters, missing: missing ? 1 : undefined, page }, { signal }),
     [debouncedSearch, filters, missing, page],
+    { live: ['projects', 'users'] },
   );
 
   const canCost = Boolean(data?.can?.manage_cost);
@@ -172,7 +173,7 @@ export default function StaffPage() {
 
   return (
     <>
-      <PageHeader title="Proyectos y capacidad" description="Sede, cargo, especialidad y jornada de cada persona. Quien entra por primera vez con Microsoft 365 no tiene perfil hasta que se le cree aquí." />
+      <PageHeader title="Proyectos y capacidad" description="Sede, cargo, especialidad y jornada de cada persona. Quien entra por primera vez con su cuenta corporativa no tiene perfil hasta que se le cree aquí." />
       <ModuleTabs module="projects" />
 
       <section className={styles.panel} aria-label="Perfiles laborales">

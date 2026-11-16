@@ -40,9 +40,13 @@ export default function ProjectDetailPage() {
   const [confirming, setConfirming] = useState(null); // { type: 'end' | 'remove', allocation }
   const [busy, setBusy] = useState(false);
 
-  const project = useApiResource((signal) => projectsService.get(projectId, { signal }), [projectId, version]);
-  const team = useApiResource((signal) => projectsService.allocations(projectId, { signal }), [projectId, version]);
-  const hours = useApiResource((signal) => projectsService.hours(projectId, weeks, { signal }), [projectId, weeks, version]);
+  const project = useApiResource((signal) => projectsService.get(projectId, { signal }), [projectId, version], {
+    live: ['projects', 'timesheets'],
+  });
+  const team = useApiResource((signal) => projectsService.allocations(projectId, { signal }), [projectId, version], { live: ['projects'] });
+  const hours = useApiResource((signal) => projectsService.hours(projectId, weeks, { signal }), [projectId, weeks, version], {
+    live: ['timesheets'],
+  });
   useDocumentTitle(project.data ? project.data.name : 'Proyecto');
 
   if (project.error) {

@@ -1,0 +1,19 @@
+{
+  "name": "nova-sync-realtime",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Puente entre Nova Sync Systems y Kafka: publica la bandeja de salida (relay) y envía los cambios al navegador (gateway SSE).",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "relay": "node src/index.js relay",
+    "gateway": "node src/index.js gateway",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "kafkajs": "2.2.4",
+    "pg": "8.23.1"
+  }
+}

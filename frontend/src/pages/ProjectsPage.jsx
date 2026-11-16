@@ -57,6 +57,7 @@ export default function ProjectsPage() {
   const { data, error, loading, reload } = useApiResource(
     (signal) => projectsService.list({ ...query, page: onlyFlags ? 1 : page, per_page: onlyFlags ? 100 : 15 }, { signal }),
     [debouncedSearch, filters, mine, page, onlyFlags],
+    { live: ['projects', 'timesheets'] },
   );
 
   const all = data?.data ?? [];

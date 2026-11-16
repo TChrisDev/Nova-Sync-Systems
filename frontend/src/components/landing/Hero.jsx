@@ -15,8 +15,8 @@ export function Hero() {
             módulo y cada persona ve solo lo que su rol le permite.
           </p>
           <div className={styles.actions}>
-            <Button to="/login" size="lg" icon="microsoft">
-              Ingresar con Microsoft 365
+            <Button to="/login" size="lg" icon="arrow">
+              Ingresar con tu cuenta corporativa
             </Button>
             <Button href="#modulos" size="lg" variant="secondary">
               Ver los módulos

@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\Audit\AuditLogger;
 use App\Services\Authorization\PrivilegeGuard;
+use App\Services\Events\DomainEventRecorder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -111,6 +112,16 @@ class RoleService
                     'added' => $added->all(),
                     'removed' => $removed->all(),
                 ]);
+
+                // Quienes tienen el rol reciben el aviso para recargar sus permisos.
+                app(DomainEventRecorder::class)->record(
+                    type: 'role.permissions_changed',
+                    module: 'access_control',
+                    aggregateType: 'role',
+                    aggregateId: $role->getKey(),
+                    changed: ['permissions'],
+                    userIds: $role->users()->pluck('users.id')->all(),
+                );
             }
 
             return $role->load('permissions.module');

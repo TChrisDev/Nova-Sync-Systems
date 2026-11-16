@@ -56,6 +56,7 @@ export default function CapacityPage() {
   const { data, error, loading, reload } = useApiResource(
     (signal) => capacityService.weekly({ weeks, ...filters, search: debouncedSearch }, { signal }),
     [weeks, filters, debouncedSearch],
+    { live: ['projects', 'timesheets'] },
   );
 
   // Búsqueda de disponibilidad: "¿quién tiene 50 % libre del 3 de noviembre al 18 de diciembre?"

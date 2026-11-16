@@ -1,13 +1,16 @@
 # Nova Sync Systems en Docker
 
-Con Docker el ERP corre completo en cuatro contenedores, sin instalar PHP, Composer, Node ni PostgreSQL en el equipo:
+Con Docker el ERP corre completo en siete contenedores, sin instalar PHP, Composer, Node ni PostgreSQL en el equipo:
 
 | Servicio | Imagen | Qué hace |
 | --- | --- | --- |
 | `web` | nginx 1.27 + la interfaz compilada | Sirve React y reenvía `/api`, `/auth`, `/sanctum` y `/up` a Laravel. Es el único puerto publicado (8080). |
 | `app` | PHP 8.4-FPM + Laravel | La API. Al arrancar aplica migraciones, sincroniza módulos y permisos, crea sedes y plantillas de roles (sin pisar ajustes) y arma las cachés. |
-| `scheduler` | la misma del backend | `php artisan schedule:work`: abre cada mes de las mensualidades. |
+| `scheduler` | la misma del backend | `php artisan schedule:work`: abre cada mes de las mensualidades y limpia los eventos ya publicados. |
 | `db` | PostgreSQL 16 | Datos en el volumen `pgdata`. No se publica fuera de Docker. |
+| `kafka` | Apache Kafka 3.9 (KRaft, un nodo) | Bus de eventos del ERP. Datos en el volumen `kafkadata`. No se publica fuera de Docker. |
+| `realtime-relay` | Node.js 22 (`realtime/`) | Publica en Kafka los eventos de `outbox_events`. |
+| `realtime-gateway` | la misma de `realtime-relay` | Consume Kafka y envía los cambios al navegador por `/realtime/stream` (SSE). |
 
 El navegador ve un solo origen (`http://localhost:8080`): la cookie de sesión y el CSRF de Sanctum funcionan sin CORS, igual que con el proxy de Vite en desarrollo.
 
@@ -24,7 +27,7 @@ En PowerShell, desde la carpeta raíz del proyecto (donde está `docker-compose.
 
 ```powershell
 Copy-Item .env.docker.example .env
-notepad .env        # pon una contraseña en DB_PASSWORD y los datos de Microsoft
+notepad .env        # pon DB_PASSWORD, NOVA_REALTIME_SECRET y los datos de Microsoft y/o Google
 
 # Genera la clave de la aplicación y pégala en APP_KEY dentro de .env
 docker compose run --rm --no-deps app php artisan key:generate --show

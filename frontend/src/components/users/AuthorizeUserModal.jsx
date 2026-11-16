@@ -12,7 +12,7 @@ import formStyles from '../ui/Form.module.scss';
 
 /**
  * Autoriza una cuenta corporativa. No se pide contraseña: la persona
- * ingresará con su cuenta de Microsoft 365 y su identidad se vinculará
+ * ingresará con su cuenta de Microsoft 365 o de Google Workspace y su identidad se vinculará
  * en ese primer ingreso.
  */
 export function AuthorizeUserModal({ open, onClose, onSaved }) {
@@ -63,7 +63,7 @@ export function AuthorizeUserModal({ open, onClose, onSaved }) {
       onClose={saving ? () => {} : onClose}
       dismissible={!saving}
       title="Autorizar cuenta corporativa"
-      description="La persona podrá ingresar con su cuenta de Microsoft 365. No se crea ni se solicita ninguna contraseña."
+      description="La persona podrá ingresar con su cuenta de Microsoft 365 o de Google Workspace. No se crea ni se solicita ninguna contraseña."
       footer={
         <>
           <Button variant="secondary" onClick={onClose} disabled={saving}>
@@ -97,7 +97,7 @@ export function AuthorizeUserModal({ open, onClose, onSaved }) {
           value={values.email}
           onChange={(e) => setValues((v) => ({ ...v, email: e.target.value }))}
           error={errors.email}
-          hint="Debe coincidir con el usuario de Microsoft 365 (UPN) con el que ingresará."
+          hint="Debe coincidir con el correo corporativo (Microsoft 365 o Google Workspace) con el que ingresará."
           required
           maxLength={190}
           autoComplete="off"
