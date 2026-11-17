@@ -33,7 +33,7 @@ export function ModuleRoadmap() {
           </p>
         </header>
 
-        <div className={styles.columns}>
+        <div className={cx(styles.columns, planned.length === 0 && styles.single)}>
           <div className={styles.group}>
             <h3 className={styles.groupTitle}>
               <span className={cx(styles.marker, styles.markerActive)} aria-hidden="true" />
@@ -46,20 +46,22 @@ export function ModuleRoadmap() {
             </ul>
           </div>
 
-          <div className={styles.group}>
-            <h3 className={styles.groupTitle}>
-              <span className={cx(styles.marker, styles.markerPlanned)} aria-hidden="true" />
-              En desarrollo
-            </h3>
-            <ul className={styles.list}>
-              {planned.map((module) => (
-                <ModuleRow key={module.code} module={module} />
-              ))}
-            </ul>
-            <p className={styles.footnote}>
-              Estos módulos ya forman parte de la arquitectura y del modelo de permisos; se habilitarán a medida que se publiquen.
-            </p>
-          </div>
+          {planned.length > 0 && (
+            <div className={styles.group}>
+              <h3 className={styles.groupTitle}>
+                <span className={cx(styles.marker, styles.markerPlanned)} aria-hidden="true" />
+                En desarrollo
+              </h3>
+              <ul className={styles.list}>
+                {planned.map((module) => (
+                  <ModuleRow key={module.code} module={module} />
+                ))}
+              </ul>
+              <p className={styles.footnote}>
+                Estos módulos ya forman parte de la arquitectura y del modelo de permisos; se habilitarán a medida que se publiquen.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </section>

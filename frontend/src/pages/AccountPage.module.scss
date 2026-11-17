@@ -1,0 +1,96 @@
+@use '../styles/abstracts' as *;
+
+.layout {
+  display: grid;
+  gap: space('5');
+  max-width: 48rem;
+}
+
+.card {
+  @include panel;
+  display: grid;
+  gap: space('4');
+  padding: space('5') space('6');
+}
+
+.cardTitle {
+  margin: 0;
+  color: color('ink');
+  font-size: font-size('lg');
+  font-weight: weight('bold');
+}
+
+.profile {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: space('5');
+}
+
+.identity {
+  display: grid;
+  gap: space('1');
+  min-width: 0;
+
+  p {
+    margin: 0;
+  }
+}
+
+.name {
+  color: color('ink');
+  font-size: font-size('lg');
+  font-weight: weight('semibold');
+}
+
+.email {
+  color: color('text-muted');
+  font-size: font-size('sm');
+}
+
+.roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: space('1');
+  margin-top: space('1') !important;
+}
+
+.photoActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: space('2');
+}
+
+.hint {
+  margin: 0;
+  color: color('text-subtle');
+  font-size: font-size('sm');
+}
+
+.error {
+  margin: 0;
+  color: color('danger');
+  font-size: font-size('sm');
+  font-weight: weight('medium');
+}
+
+.providers {
+  display: grid;
+  gap: space('2');
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: space('3');
+    padding: space('3') space('4');
+    border: 1px solid color('border');
+    border-radius: radius('md');
+    color: color('ink');
+    font-size: font-size('sm');
+    font-weight: weight('medium');
+  }
+}

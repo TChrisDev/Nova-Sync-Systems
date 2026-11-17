@@ -1,10 +1,12 @@
 import { useContext, useState } from 'react';
+import { Link } from 'react-router';
+import { Avatar } from '../ui/Avatar';
+import { NotificationBell } from './NotificationBell';
 import { RealtimeContext } from '../../context/RealtimeContext';
 import { Icon } from '../ui/Icon';
 import { Badge } from '../ui/Badge';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../hooks/useToast';
-import { initials } from '../../utils/format';
 import styles from './Topbar.module.scss';
 
 export function Topbar({ onMenu, sidebarOpen }) {
@@ -34,10 +36,10 @@ export function Topbar({ onMenu, sidebarOpen }) {
 
       <LiveStatus />
 
-      <div className={styles.user}>
-        <span className={styles.avatar} aria-hidden="true">
-          {initials(user.name)}
-        </span>
+      <NotificationBell />
+
+      <Link to="/app/account" className={styles.user} title="Configuración de cuenta">
+        <Avatar user={user} size={36} />
         <span className={styles.identity}>
           <span className={styles.name}>
             {user.name}
@@ -49,7 +51,8 @@ export function Topbar({ onMenu, sidebarOpen }) {
           </span>
           <span className={styles.meta}>{isSuperAdmin ? user.email : roleLabel}</span>
         </span>
-      </div>
+        <span className="visually-hidden">Configuración de cuenta</span>
+      </Link>
 
       <button type="button" className={styles.logout} onClick={handleLogout} disabled={leaving}>
         <Icon name="logout" size={18} />

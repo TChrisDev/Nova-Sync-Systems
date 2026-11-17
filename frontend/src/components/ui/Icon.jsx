@@ -52,6 +52,31 @@ const PATHS = {
   plus: <path d="M12 5v14M5 12h14" />,
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
   x: <path d="M6 6l12 12M18 6 6 18" />,
+  bell: (
+    <>
+      <path d="M6.5 10a5.5 5.5 0 0 1 11 0c0 4.5 2 6 2 6h-15s2-1.5 2-6Z" />
+      <path d="M10 19.5a2.2 2.2 0 0 0 4 0" />
+    </>
+  ),
+  camera: (
+    <>
+      <path d="M4.5 8h3l1.5-2.5h6L16.5 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" />
+      <circle cx="12" cy="13" r="3.25" />
+    </>
+  ),
+  settings: (
+    <>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M6 6l1.4 1.4M16.6 16.6 18 18M6 18l1.4-1.4M16.6 7.4 18 6" />
+    </>
+  ),
+  send: <path d="M20 4 9.5 14.5M20 4l-6.5 16-4-5.5L4 10.5 20 4Z" />,
+  calendar: (
+    <>
+      <rect x="4" y="5.5" width="16" height="14.5" rx="1.5" />
+      <path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" />
+    </>
+  ),
   'chevron-left': <path d="m14.5 6-6 6 6 6" />,
   'chevron-right': <path d="m9.5 6 6 6-6 6" />,
   'chevron-down': <path d="m6 9.5 6 6 6-6" />,

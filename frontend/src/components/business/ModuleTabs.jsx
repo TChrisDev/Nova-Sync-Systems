@@ -15,6 +15,11 @@ const MODULE_TABS = {
     { to: '/app/capacity', label: 'Capacidad', anyOf: ['projects.capacity'] },
     { to: '/app/staff', label: 'Perfiles', anyOf: ['projects.staff'] },
   ],
+  timesheets: [
+    { to: '/app/timesheets', label: 'Mis horas', anyOf: ['timesheets.create'], end: true },
+    { to: '/app/timesheets/approvals', label: 'Aprobaciones', anyOf: ['timesheets.approve', 'timesheets.approve_any'] },
+    { to: '/app/timesheets/summary', label: 'Resumen' },
+  ],
 };
 
 export function ModuleTabs({ module = 'clients' }) {
@@ -26,7 +31,7 @@ export function ModuleTabs({ module = 'clients' }) {
   return (
     <nav className={styles.tabs} aria-label="Secciones del módulo">
       {tabs.map((tab) => (
-        <NavLink key={tab.to} to={tab.to} className={({ isActive }) => cx(styles.tab, isActive && styles.tabActive)}>
+        <NavLink key={tab.to} to={tab.to} end={tab.end} className={({ isActive }) => cx(styles.tab, isActive && styles.tabActive)}>
           {tab.label}
         </NavLink>
       ))}

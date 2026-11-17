@@ -52,7 +52,7 @@ class ProvisionSuperAdmin extends Command
             $this->info(($result['created'] ? 'Cuenta autorizada' : 'Cuenta existente').": {$email} ahora es Super Admin.");
         }
 
-        $this->line('El acceso se realiza exclusivamente con el inicio de sesión de Microsoft 365 de esa cuenta.');
+        $this->line('El acceso se realiza exclusivamente con el inicio de sesión corporativo (Microsoft 365 o Google Workspace) de esa cuenta.');
 
         return self::SUCCESS;
     }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AccountController;
 use App\Http\Controllers\Api\V1\AuditLogController;
 use App\Http\Controllers\Api\V1\CapacityController;
 use App\Http\Controllers\Api\V1\ClientContactController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\Api\V1\ContractController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\MeController;
 use App\Http\Controllers\Api\V1\ModuleController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\PermissionController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\RealtimeController;
@@ -37,6 +39,17 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
         Route::get('modules', [ModuleController::class, 'index'])->name('modules.index');
         Route::post('realtime/ticket', [RealtimeController::class, 'ticket'])->name('realtime.ticket');
+
+        // Notificaciones de la campana (siempre las de la propia cuenta).
+        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+        Route::post('notifications/{notification}/read', [NotificationController::class, 'read'])->whereUuid('notification')->name('notifications.read');
+
+        // Configuración de la propia cuenta.
+        Route::put('account/preferences', [AccountController::class, 'updatePreferences'])->name('account.preferences');
+        Route::post('account/avatar', [AccountController::class, 'updateAvatar'])->middleware('throttle:10,1')->name('account.avatar');
+        Route::delete('account/avatar', [AccountController::class, 'destroyAvatar'])->name('account.avatar.destroy');
+        Route::get('users/{user}/avatar', [AccountController::class, 'avatar'])->whereNumber('user')->name('users.avatar');
 
         // Roles y permisos
         Route::get('permissions', [PermissionController::class, 'index'])

@@ -22,6 +22,8 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Events\NotificationSent;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Socialite\Facades\Socialite;
@@ -55,6 +57,20 @@ class AppServiceProvider extends ServiceProvider
         foreach (array_keys(DomainEventRecorder::MODELS) as $model) {
             $model::observe(DomainEventObserver::class);
         }
+
+        // Una notificación nueva en la campana avisa al navegador de su dueño
+        // por el canal en tiempo real (solo el id: el contenido se pide a la API).
+        Event::listen(function (NotificationSent $event) {
+            if ($event->channel === 'database' && $event->notifiable instanceof User) {
+                app(DomainEventRecorder::class)->record(
+                    type: 'notification.created',
+                    module: 'notifications',
+                    aggregateType: 'notification',
+                    aggregateId: (string) $event->notification->id,
+                    userIds: [$event->notifiable->getKey()],
+                );
+            }
+        });
 
         Socialite::extend('entra', function ($app) {
             $config = $app->make(EntraIdConfig::class);

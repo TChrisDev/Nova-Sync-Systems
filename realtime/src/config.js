@@ -4,7 +4,7 @@
 import os from 'node:os';
 
 /** Módulos del ERP que publican eventos (mismos que DomainEventRecorder). */
-export const MODULES = ['clients', 'projects', 'timesheets', 'users', 'access_control'];
+export const MODULES = ['clients', 'projects', 'timesheets', 'users', 'access_control', 'notifications'];
 
 function int(name, fallback) {
   const value = Number.parseInt(process.env[name] ?? '', 10);

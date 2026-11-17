@@ -3,6 +3,7 @@
 export const MODULE_ROUTES = {
   clients: '/app/clients',
   projects: '/app/projects',
+  timesheets: '/app/timesheets',
   access_control: '/app/roles',
   users: '/app/users',
   audit: '/app/audit',
