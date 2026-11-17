@@ -38,7 +38,7 @@ export function Features() {
             Bases sólidas desde el primer módulo.
           </h2>
           <p className={styles.lead}>
-            Antes de sumar contratos, proyectos y registro de horas, la plataforma resuelve lo que todos los módulos necesitan: quién
+            Contratos, proyectos y registro de horas se apoyan en la misma base, que resuelve lo que todos los módulos necesitan: quién
             entra, qué puede hacer y qué cambió.
           </p>
         </div>

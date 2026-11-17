@@ -80,7 +80,9 @@ export async function request(method, path, { query, body, signal, retryOnCsrf =
   if (!SAFE_METHODS.has(upper)) await ensureCsrfCookie();
 
   const headers = { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
-  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  // FormData (subida de archivos): el navegador pone el Content-Type con su separador.
+  const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
+  if (body !== undefined && !isForm) headers['Content-Type'] = 'application/json';
   const xsrf = readCookie('XSRF-TOKEN');
   if (xsrf && !SAFE_METHODS.has(upper)) headers['X-XSRF-TOKEN'] = xsrf;
 
@@ -89,7 +91,7 @@ export async function request(method, path, { query, body, signal, retryOnCsrf =
     response = await fetch(buildUrl(path, query), {
       method: upper,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
       credentials: 'include',
       signal,
     });

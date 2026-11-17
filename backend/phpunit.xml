@@ -32,5 +32,14 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Las pruebas configuran cada proveedor y el tiempo real por su cuenta: nada sale del .env local. -->
+        <env name="MICROSOFT_TENANT_ID" value="" force="true"/>
+        <env name="MICROSOFT_CLIENT_ID" value="" force="true"/>
+        <env name="MICROSOFT_CLIENT_SECRET" value="" force="true"/>
+        <env name="GOOGLE_CLIENT_ID" value="" force="true"/>
+        <env name="GOOGLE_CLIENT_SECRET" value="" force="true"/>
+        <env name="GOOGLE_WORKSPACE_DOMAINS" value="" force="true"/>
+        <env name="NOVA_EVENTS_ENABLED" value="false" force="true"/>
+        <env name="NOVA_REALTIME_SECRET" value="" force="true"/>
     </php>
 </phpunit>

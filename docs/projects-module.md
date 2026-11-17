@@ -9,7 +9,8 @@ Responde a los problemas del caso Nexus Safe-Cloud:
 
 **Estado:**
 - **Clientes y contratos:** disponible, con pantallas.
-- **Proyectos y capacidad** y **Registro de horas:** tienen la API lista y protegida, pero todavía aparecen como *En desarrollo* porque les faltan las pantallas.
+- **Proyectos y capacidad:** disponible, con pantallas.
+- **Registro de horas:** disponible, con las pestañas *Mis horas*, *Aprobaciones* y *Resumen*.
 
 ## 1. Parámetros de negocio
 

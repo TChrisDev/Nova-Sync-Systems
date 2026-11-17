@@ -42,6 +42,15 @@
   align-items: center;
   gap: space('3');
   min-width: 0;
+  padding: space('1') space('2');
+  border-radius: radius('md');
+  color: inherit;
+  text-decoration: none;
+  @include focus-ring;
+
+  &:hover {
+    background: color('primary-faint');
+  }
 }
 
 .avatar {

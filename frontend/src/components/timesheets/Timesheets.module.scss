@@ -1,0 +1,337 @@
+@use '../../styles/abstracts' as *;
+
+// Registro de horas: semana, celdas por estado, aprobaciones y resumen.
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: space('3');
+  margin-bottom: space('5');
+}
+
+.metric {
+  padding: space('4');
+  border: 1px solid color('border');
+  border-radius: radius('lg');
+  background: color('surface');
+}
+
+.metricLabel {
+  margin: 0 0 space('1');
+  color: color('text-subtle');
+  font-size: font-size('xs');
+  font-weight: weight('semibold');
+}
+
+.metricValue {
+  margin: 0;
+  color: color('ink');
+  font-size: font-size('xl');
+  font-weight: weight('bold');
+  font-variant-numeric: tabular-nums;
+}
+
+.metricDetail {
+  margin: space('1') 0 0;
+  color: color('text-subtle');
+  font-size: font-size('xs');
+}
+
+.weekBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: space('3');
+  padding: space('4') space('5');
+  border-bottom: 1px solid color('border');
+}
+
+.weekNav {
+  display: flex;
+  align-items: center;
+  gap: space('2');
+}
+
+.weekLabel {
+  min-width: 11rem;
+  color: color('ink');
+  font-weight: weight('semibold');
+  text-align: center;
+}
+
+.iconButton {
+  @include reset-button;
+  @include focus-ring;
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid color('border');
+  border-radius: radius('sm');
+  background: color('surface');
+  color: color('text-muted');
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: color('border-strong');
+    color: color('ink');
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.gridWrap {
+  overflow-x: auto;
+}
+
+.grid {
+  width: 100%;
+  min-width: 52rem;
+  border-collapse: collapse;
+  font-size: font-size('sm');
+
+  th,
+  td {
+    padding: space('2');
+    border-bottom: 1px solid color('border');
+    text-align: center;
+  }
+
+  th {
+    color: color('text-subtle');
+    font-size: font-size('xs');
+    font-weight: weight('semibold');
+  }
+
+  th:first-child,
+  td:first-child {
+    width: 30%;
+    padding-left: space('5');
+    text-align: left;
+  }
+
+  th:last-child,
+  td:last-child {
+    padding-right: space('5');
+  }
+
+  tfoot td {
+    color: color('ink');
+    font-weight: weight('semibold');
+    border-bottom: 0;
+  }
+}
+
+.today {
+  color: color('primary-strong') !important;
+}
+
+.projectCode {
+  display: block;
+  color: color('ink');
+  font-weight: weight('semibold');
+}
+
+.projectName {
+  display: block;
+  color: color('text-subtle');
+  font-size: font-size('xs');
+}
+
+.cell {
+  @include reset-button;
+  @include focus-ring;
+  min-width: 3rem;
+  padding: space('2') space('1');
+  border: 1px dashed transparent;
+  border-radius: radius('sm');
+  color: color('text-subtle');
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: color('border-strong');
+    color: color('ink');
+  }
+
+  &:disabled {
+    color: color('border-strong');
+    cursor: default;
+  }
+}
+
+.draft {
+  border: 1px solid color('border-strong');
+  background: color('surface');
+  color: color('ink');
+}
+
+.submitted {
+  background: color('warning-soft');
+  color: color('warning');
+}
+
+.approved {
+  background: color('success-soft');
+  color: color('success');
+}
+
+.rejected {
+  background: color('danger-soft');
+  color: color('danger');
+}
+
+.total {
+  color: color('ink');
+  font-weight: weight('semibold');
+  font-variant-numeric: tabular-nums;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: space('3');
+  padding: space('4') space('5');
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: space('4');
+  color: color('text-subtle');
+  font-size: font-size('xs');
+}
+
+.swatch {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: space('1');
+  border-radius: 3px;
+  vertical-align: -1px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: space('2');
+}
+
+.notice {
+  display: flex;
+  gap: space('2');
+  margin: 0 space('5') space('4');
+  padding: space('3') space('4');
+  border-radius: radius('md');
+  background: color('danger-soft');
+  color: color('danger');
+  font-size: font-size('sm');
+
+  p {
+    margin: 0;
+  }
+}
+
+.addRow {
+  display: flex;
+  align-items: center;
+  gap: space('2');
+  max-width: 22rem;
+}
+
+// Registros dentro del diálogo de una celda.
+.entries {
+  display: grid;
+  gap: space('2');
+  margin: 0 0 space('4');
+  padding: 0;
+  list-style: none;
+}
+
+.entry {
+  display: flex;
+  justify-content: space-between;
+  gap: space('3');
+  padding: space('3');
+  border: 1px solid color('border');
+  border-radius: radius('md');
+}
+
+.entrySelected {
+  border-color: color('primary');
+  background: color('primary-faint');
+}
+
+.entryMain {
+  min-width: 0;
+
+  p {
+    margin: 0;
+  }
+}
+
+.entryHours {
+  color: color('ink');
+  font-weight: weight('semibold');
+}
+
+.entryMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: space('1');
+  margin-top: space('1') !important;
+}
+
+.reason {
+  color: color('danger');
+  font-size: font-size('xs');
+}
+
+.entryActions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-start;
+  gap: space('1');
+}
+
+.duration {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: space('3');
+}
+
+.flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: space('4');
+}
+
+.dayHint {
+  margin: 0;
+  color: color('text-subtle');
+  font-size: font-size('xs');
+}
+
+.selectionBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: space('3');
+  padding: space('3') space('5');
+  border-bottom: 1px solid color('border');
+  background: color('primary-faint');
+  font-size: font-size('sm');
+}
+
+.check {
+  width: 1rem;
+  height: 1rem;
+  accent-color: color('primary');
+}

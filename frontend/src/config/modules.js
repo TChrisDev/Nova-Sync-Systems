@@ -56,7 +56,7 @@ export const PUBLIC_MODULES = [
     code: 'timesheets',
     symbol: 'Hr',
     name: 'Registro de horas',
-    status: 'planned',
+    status: 'active',
     description: 'Horas 24/7 con aprobación del líder y consumo de cada contrato en tiempo real.',
   },
 ];

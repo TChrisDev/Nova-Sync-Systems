@@ -24,7 +24,8 @@ nova-soft-systems/
 │   ├── app/
 │   │   ├── Auth/EntraId/        Proveedor OIDC de Microsoft, validación del id_token, configuración
 │   │   ├── Auth/Google/         Proveedor OIDC de Google Workspace (dominio "hd" obligatorio)
-│   │   ├── Console/Commands/    nova:super-admin, nova:sync-permissions, nova:setup-projects, nova:contracts-renew, nova:demo, nova:outbox-prune
+│   │   ├── Console/Commands/    nova:super-admin, nova:sync-permissions, nova:setup-projects, nova:contracts-renew, nova:demo, nova:outbox-prune, nova:notify-project-deadlines
+│   │   ├── Notifications/       ProjectEndingSoon (campana y correo)
 │   │   ├── Enums/               Estados y catálogos del negocio (líneas de servicio, cobro, cobertura...)
 │   │   ├── Exceptions/          Reglas de negocio con códigos de error estables
 │   │   ├── Http/Controllers/    Api/V1/* y Auth/MicrosoftAuthController
@@ -40,7 +41,7 @@ nova-soft-systems/
 │   ├── config/nova.php          Catálogo de módulos y acciones (fuente de verdad de permisos)
 │   ├── database/migrations/     Usuarios, módulos, permisos, roles, auditoría, sedes, clientes, contratos, proyectos, horas
 │   ├── lang/es/                 Mensajes de validación en español
-│   └── tests/                   188 pruebas (autenticación Microsoft y Google, autorización, roles, usuarios, clientes, contratos, proyectos, capacidad, eventos, tiempo real, comandos)
+│   └── tests/                   199 pruebas (autenticación Microsoft y Google, notificaciones, cuenta, autorización, roles, usuarios, clientes, contratos, proyectos, capacidad, eventos, tiempo real, comandos)
 ├── frontend/                Aplicación React (Dockerfile y docker/nginx.conf para la imagen)
 │   └── src/
 │       ├── components/          ui/ (reutilizables), landing/, admin/, roles/, users/, brand/
@@ -59,6 +60,7 @@ nova-soft-systems/
     ├── entra-id-setup.md    Registro de la aplicación en Microsoft Entra ID
     ├── google-workspace-setup.md  Cliente OAuth de Google Workspace
     ├── realtime-kafka.md    Eventos de dominio, tópicos de Kafka y tiempo real
+    ├── notifications.md     Avisos de proyectos por vencer (campana y correo) y configuración de cuenta
     ├── projects-module.md   Módulo de Proyectos y Capacidad: datos, permisos, reglas y API
     └── docker.md            Ejecución con Docker Compose
 ```
@@ -172,14 +174,15 @@ cd realtime && npm test                  # relay, gateway, tickets y reglas de e
 - HTTPS obligatorio, `APP_ENV=production`, `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`, `SESSION_ENCRYPT=true`.
 - Redirect URI de producción registrado en Entra ID (p. ej. `https://erp.tuempresa.com/auth/microsoft/callback`).
 - En cada despliegue: `php artisan migrate --force && php artisan nova:sync-permissions && php artisan optimize`.
-- Programador de tareas activo (`* * * * * php artisan schedule:run`): abre cada mes de las mensualidades (`nova:contracts-renew`) y limpia los eventos ya publicados (`nova:outbox-prune`).
+- Programador de tareas activo (`* * * * * php artisan schedule:run`): abre cada mes de las mensualidades (`nova:contracts-renew`), avisa los proyectos por vencer (`nova:notify-project-deadlines`) y limpia los eventos ya publicados (`nova:outbox-prune`).
+- Correo SMTP configurado (`MAIL_*`) para que los avisos también lleguen por correo. Ver [docs/notifications.md](docs/notifications.md).
 - Kafka con réplicas, una sola réplica de `realtime-relay` y `NOVA_REALTIME_SECRET` larga y aleatoria. Ver [docs/realtime-kafka.md](docs/realtime-kafka.md#6-producción).
 - Nunca ejecutes `nova:demo` en producción (el comando se niega a hacerlo).
 - Rota el secreto de cliente antes de su vencimiento (Entra ID lo exige) y registra el Redirect URI de producción también en Google Cloud si usas Google Workspace.
 
 ## 9. Módulo de Proyectos y Capacidad
 
-**Clientes y contratos** y **Proyectos y capacidad** están disponibles con sus pantallas. **Registro de horas** tiene la API lista y sigue como **En desarrollo** en la interfaz hasta tener pantallas. Detalle completo en [docs/projects-module.md](docs/projects-module.md).
+**Clientes y contratos**, **Proyectos y capacidad** y **Registro de horas** están disponibles con sus pantallas. Detalle completo en [docs/projects-module.md](docs/projects-module.md).
 
 | Módulo | Qué cubre |
 | --- | --- |
@@ -215,6 +218,9 @@ Todo lo de la demo es ficticio, usa el dominio `@demo.nexus.test` (esas cuentas 
 - Landing page completa (navbar, hero con mapa de módulos, presentación, características, arquitectura modular, seguridad y acceso, llamada a la acción, footer), responsive y navegable con teclado.
 - Pantalla de acceso con los flujos oficiales de Microsoft 365 y Google Workspace (sin formularios de contraseña) y mensajes para cada error de autenticación.
 - Integración OIDC con Google Workspace: PKCE, `state`, `nonce`, firma con JWKS de Google, emisor, audiencia, correo verificado y dominio de Workspace (`hd`) obligatorio; vinculación por `sub`.
+- Registro de horas con pantallas: semana por proyecto y día, registro en bloques de 15 minutos, envío a aprobación, aprobaciones por lote con motivo de rechazo y resumen mensual.
+- Notificaciones: campana en la barra superior y correo cuando un proyecto está por vencer (15, 7, 1 y 0 días), en tiempo real.
+- Configuración de cuenta: foto de perfil (privada, solo para usuarios con sesión) y preferencia de avisos por correo.
 - Eventos de dominio en Kafka con outbox transaccional, servicio `realtime/` (relay y gateway SSE con tickets firmados) y refresco automático de las pantallas según los permisos de cada persona.
 - Backend: modelo de usuarios, módulos, permisos, roles y auditoría; API REST v1; validación con Form Requests; Policies, middleware y reglas contra escalada de privilegios; protección del último Super Admin; auditoría de operaciones sensibles; errores JSON uniformes.
 - Integración OIDC con Entra ID: PKCE, `state`, `nonce`, validación de firma (JWKS con rotación de claves), emisor, audiencia y tenant; vinculación por `oid`.
@@ -225,7 +231,7 @@ Todo lo de la demo es ficticio, usa el dominio `@demo.nexus.test` (esas cuentas 
 **Pendiente**
 
 - El equipo ya probó el flujo con Microsoft contra su tenant (en Windows, con las pruebas del backend aprobadas). Queda repetir esa prueba con el Super Admin aprovisionado y con las plantillas de roles del módulo de proyectos.
-- Pantallas de Registro de horas (mis horas, aprobaciones y tablero de rentabilidad).
+- Tablero de rentabilidad por proyecto y cliente (ingreso frente a costo aprobado).
 - Los módulos Finanzas, Inventario, Compras, Ventas, Talento humano y Reportes se retiraron del alcance y de la interfaz.
 - Pruebas automatizadas del frontend (no se añadieron dependencias de testing para mantener el proyecto liviano).
 

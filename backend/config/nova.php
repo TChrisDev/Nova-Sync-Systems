@@ -67,6 +67,19 @@ return [
         'max_backdate_days' => (int) env('NOVA_TIMESHEET_BACKDATE_DAYS', 31),
     ],
 
+    'notifications' => [
+        // Días antes de la fecha de fin en que se avisa que un proyecto está
+        // por vencer (en la aplicación y por correo). 0 = el mismo día.
+        'project_deadline_days' => env('NOVA_PROJECT_DEADLINE_DAYS', '15,7,1,0'),
+    ],
+
+    'account' => [
+        // Foto de perfil: tamaño máximo en KB y lado mínimo/máximo en píxeles.
+        'avatar_max_kb' => (int) env('NOVA_AVATAR_MAX_KB', 2048),
+        'avatar_min_px' => 64,
+        'avatar_max_px' => 4096,
+    ],
+
     /*
     | Eventos de dominio → Kafka (patrón transactional outbox).
     | Cada cambio de negocio se escribe en outbox_events en la misma
@@ -191,7 +204,7 @@ return [
             'name' => 'Registro de horas',
             'description' => 'Registro de horas 24/7, envío, aprobación y consumo de contratos.',
             'icon' => 'clock',
-            'status' => 'planned',
+            'status' => 'active',
             'sort_order' => 120,
             'actions' => [
                 'create' => 'Registrar sus propias horas',

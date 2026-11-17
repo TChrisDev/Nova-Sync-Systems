@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
+import { useAuth } from '../hooks/useAuth';
 import { FullPageStatus } from '../components/ui/FullPageStatus';
 import LandingPage from '../pages/LandingPage';
 import NotFoundPage from '../pages/NotFoundPage';
@@ -24,6 +25,19 @@ const ProjectsPage = lazy(() => import('../pages/ProjectsPage'));
 const ProjectDetailPage = lazy(() => import('../pages/ProjectDetailPage'));
 const CapacityPage = lazy(() => import('../pages/CapacityPage'));
 const StaffPage = lazy(() => import('../pages/StaffPage'));
+const TimesheetPage = lazy(() => import('../pages/TimesheetPage'));
+const TimesheetApprovalsPage = lazy(() => import('../pages/TimesheetApprovalsPage'));
+const TimesheetSummaryPage = lazy(() => import('../pages/TimesheetSummaryPage'));
+const AccountPage = lazy(() => import('../pages/AccountPage'));
+
+const TIMESHEET_PERMISSIONS = ['timesheets.create', 'timesheets.view', 'timesheets.approve', 'timesheets.approve_any'];
+
+function TimesheetHome() {
+  const { can, canAny } = useAuth();
+  if (can('timesheets.create')) return <TimesheetPage />;
+  if (canAny(['timesheets.approve', 'timesheets.approve_any'])) return <Navigate to="/app/timesheets/approvals" replace />;
+  return <Navigate to="/app/timesheets/summary" replace />;
+}
 
 export function AppRouter() {
   return (
@@ -88,6 +102,32 @@ export function AppRouter() {
               ].map(([path, page, anyOf]) => (
                 <Route key={path} path={path} element={<RequirePermission anyOf={anyOf}>{page}</RequirePermission>} />
               ))}
+              {/* Registro de horas: "Mis horas" para quien registra; los demás van a su pestaña. */}
+              <Route
+                path="timesheets"
+                element={
+                  <RequirePermission anyOf={TIMESHEET_PERMISSIONS}>
+                    <TimesheetHome />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="timesheets/approvals"
+                element={
+                  <RequirePermission anyOf={['timesheets.approve', 'timesheets.approve_any']}>
+                    <TimesheetApprovalsPage />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="timesheets/summary"
+                element={
+                  <RequirePermission anyOf={TIMESHEET_PERMISSIONS}>
+                    <TimesheetSummaryPage />
+                  </RequirePermission>
+                }
+              />
+              <Route path="account" element={<AccountPage />} />
               <Route path="*" element={<NotFoundPage inPanel />} />
             </Route>
           </Route>

@@ -44,6 +44,7 @@ Para conservar el orden por registro, corre **una sola réplica del relay**. Los
 | `nova.timesheets` | `time_entry.*` |
 | `nova.users` | `user.*`, `user.roles_changed` |
 | `nova.access_control` | `role.*`, `role.permissions_changed` |
+| `nova.notifications` | `notification.created` (solo para su destinatario; la campana se actualiza sola) |
 
 `*` = `created`, `updated`, `deleted` y, para usuarios, `restored`. El prefijo se cambia con `NOVA_EVENTS_TOPIC_PREFIX`.
 

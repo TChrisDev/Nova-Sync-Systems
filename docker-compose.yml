@@ -65,6 +65,18 @@ x-backend-env: &backend-env
   NOVA_AUTO_PROVISION_USERS: ${NOVA_AUTO_PROVISION_USERS:-false}
   NOVA_ALLOWED_EMAIL_DOMAINS: ${NOVA_ALLOWED_EMAIL_DOMAINS:-}
 
+  # Correo de las notificaciones (proyectos por vencer). Con "log" los
+  # correos quedan en el registro del contenedor en lugar de enviarse.
+  MAIL_MAILER: ${MAIL_MAILER:-log}
+  MAIL_SCHEME: ${MAIL_SCHEME:-}
+  MAIL_HOST: ${MAIL_HOST:-}
+  MAIL_PORT: ${MAIL_PORT:-587}
+  MAIL_USERNAME: ${MAIL_USERNAME:-}
+  MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+  MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-no-reply@example.com}
+  MAIL_FROM_NAME: "Nova Sync Systems"
+  NOVA_PROJECT_DEADLINE_DAYS: ${NOVA_PROJECT_DEADLINE_DAYS:-15,7,1,0}
+
 services:
   db:
     image: postgres:16-alpine

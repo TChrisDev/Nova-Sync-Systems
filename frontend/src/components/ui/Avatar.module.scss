@@ -1,0 +1,19 @@
+@use '../../styles/abstracts' as *;
+
+.avatar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: color('primary-soft');
+  color: color('primary-strong');
+  font-weight: weight('bold');
+  line-height: 1;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

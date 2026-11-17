@@ -14,3 +14,6 @@ Schedule::command('nova:contracts-renew')->dailyAt('00:15')->timezone(config('no
 
 // Limpia de la bandeja de salida los eventos que ya están en Kafka.
 Schedule::command('nova:outbox-prune')->dailyAt('03:30')->timezone(config('nova.timezone', 'America/Bogota'))->withoutOverlapping();
+
+// Avisa los proyectos que están por llegar a su fecha de fin (campana y correo).
+Schedule::command('nova:notify-project-deadlines')->dailyAt('07:00')->timezone(config('nova.timezone', 'America/Bogota'))->withoutOverlapping();

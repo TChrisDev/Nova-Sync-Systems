@@ -20,6 +20,13 @@ class UserResource extends JsonResource
             'microsoft_linked' => $this->microsoft_oid !== null,
             // Un usuario recién creado no trae la columna hasta recargarse.
             'google_linked' => ($this->resource->getAttributes()['google_sub'] ?? null) !== null,
+            // La versión en la URL hace que el navegador pida la foto nueva al cambiarla.
+            'avatar_url' => $this->avatarUrl(),
+            // Preferencias: solo en la cuenta propia.
+            'notify_by_email' => $this->when(
+                $request->user()?->getKey() === $this->id,
+                fn () => (bool) ($this->resource->getAttributes()['notify_by_email'] ?? true),
+            ),
             'is_super_admin' => $this->whenLoaded('roles', fn () => $this->roles->contains(
                 fn (Role $role) => $role->isSuperAdmin() && $role->is_active
             )),
@@ -34,5 +41,17 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
+    }
+
+    private function avatarUrl(): ?string
+    {
+        $attributes = $this->resource->getAttributes();
+        if (empty($attributes['avatar_path'])) {
+            return null;
+        }
+
+        $version = $this->avatar_updated_at?->getTimestamp() ?? 0;
+
+        return "/api/v1/users/{$this->id}/avatar?v={$version}";
     }
 }

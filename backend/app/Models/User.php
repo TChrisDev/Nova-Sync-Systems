@@ -47,6 +47,19 @@ class User extends Authenticatable
         'email',
     ];
 
+    /**
+     * Valores por defecto de las columnas que la base completa sola, para
+     * que un usuario recién creado los tenga sin volver a consultarlo.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'google_sub' => null,
+        'avatar_path' => null,
+        'avatar_updated_at' => null,
+        'notify_by_email' => true,
+    ];
+
     /** Caché por instancia de los códigos de permiso efectivos. */
     private ?Collection $resolvedPermissionCodes = null;
 
@@ -55,6 +68,8 @@ class User extends Authenticatable
         return [
             'is_active' => 'boolean',
             'last_login_at' => 'datetime',
+            'avatar_updated_at' => 'datetime',
+            'notify_by_email' => 'boolean',
         ];
     }
 
