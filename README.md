@@ -1,5 +1,7 @@
 # Nova Sync Systems — ERP empresarial
 
+Proyecto Universitario UCompensar - Monolito Modular - ERP - Arquitectura de software.
+
 Plataforma ERP modular con control de acceso por roles y permisos, inicio de sesión corporativo con Microsoft 365 (Microsoft Entra ID) o Google Workspace, y actualizaciones en tiempo real con Apache Kafka.
 
 | Capa | Tecnología |
