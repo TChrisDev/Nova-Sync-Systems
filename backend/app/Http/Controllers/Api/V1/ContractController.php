@@ -19,6 +19,7 @@ use App\Http\Resources\HourMovementResource;
 use App\Models\Client;
 use App\Models\Contract;
 use App\Services\Contracts\ContractConsumption;
+use App\Services\Contracts\CommercialOverview;
 use App\Services\Contracts\ContractInsights;
 use App\Services\Contracts\ContractsExport;
 use Illuminate\Support\Collection;
@@ -200,6 +201,14 @@ class ContractController extends Controller
     }
 
     /** @param  array<string, mixed>  $data */
+    /** Indicadores y datos de los gráficos de Clientes y contratos. */
+    public function overview(CommercialOverview $overview): JsonResponse
+    {
+        Gate::authorize('viewAny', Contract::class);
+
+        return response()->json(['data' => $overview->build()]);
+    }
+
     private static function withoutFinancials(array $data): array
     {
         unset($data['cost'], $data['margin']);

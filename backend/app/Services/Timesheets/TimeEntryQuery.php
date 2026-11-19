@@ -37,6 +37,8 @@ class TimeEntryQuery
         return $query
             ->when($filters['project_id'] ?? null, fn (Builder $q, $id) => $q->where('project_id', $id))
             ->when($filters['user_id'] ?? null, fn (Builder $q, $id) => $q->where('user_id', $id))
+            // Sede de la persona que registró las horas (según su perfil).
+            ->when($filters['site_id'] ?? null, fn (Builder $q, $id) => $q->whereHas('user.staffProfile', fn (Builder $p) => $p->where('site_id', $id)))
             ->when($filters['status'] ?? null, fn (Builder $q, $status) => $q->where('status', $status))
             ->when($filters['from'] ?? null, fn (Builder $q, $from) => $q->whereDate('work_date', '>=', $from))
             ->when($filters['to'] ?? null, fn (Builder $q, $to) => $q->whereDate('work_date', '<=', $to))

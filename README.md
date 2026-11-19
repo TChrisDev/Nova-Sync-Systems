@@ -5,7 +5,7 @@ Plataforma ERP modular con control de acceso por roles y permisos e inicio de se
 | Capa | Tecnología |
 | --- | --- |
 | Frontend | React 19, React Router 8, Sass (CSS Modules), Vite 8 |
-| Backend | Laravel 13 (PHP 8.3+), API REST, Laravel Sanctum (sesión SPA), Laravel Socialite |
+| Backend | Laravel 13 (PHP 8.4+), API REST, Laravel Sanctum (sesión SPA), Laravel Socialite |
 | Autenticación | Microsoft Entra ID — OpenID Connect, Authorization Code + PKCE |
 | Base de datos | PostgreSQL 15+ (recomendada) · SQLite para desarrollo rápido y pruebas |
 
@@ -20,7 +20,7 @@ nova-soft-systems/
 ├── backend/                 API Laravel (Dockerfile y docker/php/ para la imagen)
 │   ├── app/
 │   │   ├── Auth/EntraId/        Proveedor OIDC, validación del id_token, configuración
-│   │   ├── Console/Commands/    nova:super-admin, nova:sync-permissions, nova:setup-projects, nova:contracts-renew, nova:demo
+│   │   ├── Console/Commands/    nova:super-admin, nova:sync-permissions, nova:setup-projects, nova:setup-assets, nova:import-assets, nova:contracts-renew, nova:demo
 │   │   ├── Enums/               Estados y catálogos del negocio (líneas de servicio, cobro, cobertura...)
 │   │   ├── Exceptions/          Reglas de negocio con códigos de error estables
 │   │   ├── Http/Controllers/    Api/V1/* y Auth/MicrosoftAuthController
@@ -57,7 +57,7 @@ nova-soft-systems/
 
 ## 2. Requisitos
 
-- PHP 8.3 o superior con extensiones `pdo_pgsql` (o `pdo_sqlite`), `mbstring`, `openssl`, `intl`, `xml`, `curl`.
+- PHP 8.4 o superior (las dependencias de Symfony 8 lo exigen) con extensiones `pdo_pgsql` (o `pdo_sqlite`), `mbstring`, `openssl`, `intl`, `xml`, `curl`.
 - Composer 2.
 - Node.js 22.22 o superior y npm.
 - PostgreSQL 15 o superior (o SQLite para una prueba local).
@@ -87,7 +87,12 @@ Crea las tablas, registra el catálogo de módulos y permisos y prepara el módu
 php artisan migrate
 php artisan nova:sync-permissions --prune   # --prune retira los módulos que ya no están en el catálogo
 php artisan nova:setup-projects
+php artisan nova:setup-assets      # permisos de Activos y monitoreo en las plantillas de roles
 ```
+
+`php artisan migrate` también deja el catálogo de módulos al día (activa Registro de horas y crea los permisos de Activos y monitoreo), así que una instalación que solo migra no se queda con módulos "En desarrollo". Si usaste `php artisan config:cache`, ejecuta antes `php artisan optimize:clear`.
+
+Para importar Excel, PHP necesita la extensión `zip` (en Windows: `extension=zip` en `php.ini`).
 
 ### Frontend
 
@@ -162,13 +167,14 @@ cd frontend && npm run build             # genera frontend/dist
 
 ## 9. Módulo de Proyectos y Capacidad
 
-**Clientes y contratos** y **Proyectos y capacidad** están disponibles con sus pantallas. **Registro de horas** tiene la API lista y sigue como **En desarrollo** en la interfaz hasta tener pantallas. Detalle completo en [docs/projects-module.md](docs/projects-module.md).
+**Clientes y contratos**, **Proyectos y capacidad**, **Registro de horas** y **Activos y monitoreo** están disponibles con sus pantallas. Detalle completo en [docs/projects-module.md](docs/projects-module.md), [docs/timesheets-module.md](docs/timesheets-module.md) y [docs/assets-module.md](docs/assets-module.md).
 
 | Módulo | Qué cubre |
 | --- | --- |
 | Clientes y contratos (`clients`) | Clientes con varios contactos y NIT validado, contratos por línea de servicio con código automático, bolsas de horas con recargas, mensualidades por periodo, alertas, exportación a Excel e historial de cambios de cada contrato. |
 | Proyectos y capacidad (`projects`) | Proyectos y servicios continuos con código automático, estados y salud calculada; equipo con aviso de sobreasignación; capacidad semanal a 4/8/12 semanas descontando festivos de Colombia; búsqueda de disponibilidad; perfiles (sede, cargo, especialidad, jornada, costo con permiso). |
-| Registro de horas (`timesheets`) | Registro 24/7 con marcas de *fuera de horario* y *disponibilidad*, envío, aprobación del líder (o Gerencia/Subgerencia) y consumo de cada contrato. |
+| Registro de horas (`timesheets`) | Semana de cada persona con registro en bloques de 15 minutos, marcas de *fuera de horario* y *disponibilidad 24/7*, envío, bandeja de aprobación por persona y proyecto, rechazo con motivo, reportes con gráficos (semanas, estados, proyectos, personas, fuera de horario) y exportación a Excel. |
+| Activos y monitoreo (`assets`) | Inventario de equipos por cliente importado desde Excel (vista previa antes de guardar), CRUD con datos técnicos protegidos por permiso, mapa de red por capas con puntos únicos de falla, cobertura de Syslog/SNMP/NTP/SSH/NetFlow, telemetría IoT con gráficos y umbrales, reglas de alerta, incidentes que agrupan alertas y registro de horas ligado al incidente. Los datos vienen de los archivos importados: aún no hay sondeo en vivo de los equipos. |
 
 **Plantillas de roles** (`php artisan nova:setup-projects`): Gerencia, Subgerencia, Comercial, Líder de proyecto y Consultor. Son un punto de partida: el Super Admin las ajusta en **Roles y permisos**, y volver a ejecutar el comando no pisa esos ajustes (salvo con `--reset-permissions`).
 
@@ -202,18 +208,21 @@ Todo lo de la demo es ficticio, usa el dominio `@demo.nexus.test` (esas cuentas 
 - Panel administrativo: sidebar por permisos, barra superior con el usuario, panel con indicadores reales, catálogo de módulos, gestión de roles (crear, editar, activar/desactivar, buscar, filtrar, matriz de permisos con confirmación), gestión de usuarios (autorizar, asignar roles, activar/desactivar, eliminar conservando el historial) y auditoría.
 - Módulo de Proyectos y Capacidad, fase 1 (backend): catálogo con acciones propias (liderar, aprobar, ver costos...), migraciones, Enums, Policies, servicios, API REST, historial de contratos, recargas de bolsas, periodos mensuales, flujo de aprobación de horas, costos visibles solo con permiso, plantillas de roles y datos de demostración. La matriz de permisos del panel muestra las acciones propias de cada módulo.
 - Proyectos y capacidad, con pantallas: crear y editar proyectos, estados (sin cerrar con horas pendientes), cambio de líder, salud calculada, equipo (asignar, editar, terminar, eliminar), horas por semana, capacidad con festivos de Colombia, búsqueda de disponibilidad y perfiles laborales.
+- Registro de horas, con pantallas: mis horas (semana por proyecto y día, rechazados con su motivo, gráficos por día y por semana contra la capacidad), aprobaciones agrupadas por persona y proyecto (aprobar o rechazar en bloque), reportes con gráficos y exportación CSV con auditoría.
+- Indicadores con gráficos en Clientes y contratos (horas aprobadas por mes, mensualidad por línea de servicio, consumo de bolsas, estados y alertas) y en Proyectos y capacidad (horas por semana, consumo del presupuesto, salud, estados y asignado contra capacidad por semana).
+- Activos y monitoreo, con pantallas: panel técnico, inventario con CRUD, mapa de red, cobertura de monitoreo, telemetría con reglas de alerta, incidentes con detalle y horas de atención. Importación de los Excel del caso desde la interfaz o con `nova:import-assets`. El Panel principal muestra gráficos de horas y de activos con datos reales.
 
 **Pendiente**
 
 - El equipo ya probó el flujo con Microsoft contra su tenant (en Windows, con las pruebas del backend aprobadas). Queda repetir esa prueba con el Super Admin aprovisionado y con las plantillas de roles del módulo de proyectos.
-- Pantallas de Registro de horas (mis horas, aprobaciones y tablero de rentabilidad).
 - Confirmar `npm run build` con Vite en un equipo con acceso a npm (en el entorno de desarrollo se compiló con esbuild; ver «Verificación realizada»).
 - Los módulos Finanzas, Inventario, Compras, Ventas, Talento humano y Reportes se retiraron del alcance y de la interfaz.
+- Conectar un colector real (SNMP, Syslog, NetFlow o MQTT de los sensores) para que la telemetría llegue en vivo y no solo por importación.
 - Pruebas automatizadas del frontend (no se añadieron dependencias de testing para mantener el proyecto liviano).
 
 ## 12. Verificación realizada
 
 El entorno donde se desarrolló no tenía acceso a Packagist ni al registro de npm. Por eso:
 
-- **Backend:** se instalaron las dependencias reales (Laravel 13.38, Sanctum 4.3, Socialite 5.31, PHPUnit 12.5) clonando sus versiones publicadas desde GitHub. Con ellas se ejecutaron las migraciones, los comandos y **las 162 pruebas (890 aserciones), todas exitosas tanto en SQLite como en PostgreSQL 16**. `nova:demo` se ejecutó en ambas bases de datos. No se incluye `composer.lock`: se generará con `composer install`.
-- **Frontend:** todo el código y los estilos se compilaron sin errores con esbuild y un compilador de Sass compatible con Dart Sass, en lugar de Vite. Con esa compilación, conectada a la API Laravel real, se revisó la interfaz en navegador (escritorio y móvil) y se ejecutó un flujo completo: redirección de rutas protegidas, creación y validación de roles, asignación de permisos con confirmación, asignación de roles, desactivación de usuarios, auditoría y cierre de sesión (cookies de sesión y CSRF reales). **`npm run build` con Vite no se pudo ejecutar en ese entorno.**
+- **Backend:** se instalaron las dependencias reales (Laravel 13.38, Sanctum 4.3, Socialite 5.31, PHPUnit 12.5) clonando sus versiones publicadas desde GitHub. Con ellas se ejecutaron las migraciones, los comandos y **las 182 pruebas (1.106 aserciones), todas exitosas tanto en SQLite como en PostgreSQL 16**. `nova:demo` se ejecutó en ambas bases de datos. No se incluye `composer.lock`: se generará con `composer install`.
+- **Frontend:** todo el código y los estilos se compilaron sin errores con esbuild y un compilador de Sass compatible con Dart Sass, en lugar de Vite. Con esa compilación, conectada a la API Laravel real, se revisó la interfaz en navegador (escritorio y móvil) y se ejecutó un flujo completo: redirección de rutas protegidas, creación y validación de roles, asignación de permisos con confirmación, asignación de roles, desactivación de usuarios, auditoría y cierre de sesión (cookies de sesión y CSRF reales). En Registro de horas se probó de punta a punta: registrar y enviar, el bloqueo de más de 24 h por día, borrador y envío, aprobación de un grupo por la líder, rechazo con motivo, corrección del rechazado, reportes por periodo, exportación CSV y el bloqueo de aprobaciones para un consultor. En Activos y monitoreo: importación de Excel con vista previa y confirmación, registrar, editar y eliminar un equipo, crear, evaluar y eliminar una regla, un consultor que toma un incidente y registra horas ligadas a él (sin ver el botón de importar) y el cierre como falso positivo con explicación obligatoria. **`npm run build` con Vite no se pudo ejecutar en ese entorno.**

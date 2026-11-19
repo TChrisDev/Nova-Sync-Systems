@@ -1,0 +1,667 @@
+@use '../../styles/abstracts' as *;
+
+// Pantallas del registro de horas: semana, aprobaciones y reportes.
+
+.panel {
+  @include panel;
+  margin-bottom: space('6');
+  overflow: hidden;
+}
+
+// --- Indicadores -----------------------------------------------------------
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: space('4');
+  margin: 0 0 space('6');
+}
+
+.kpi {
+  display: grid;
+  align-content: start;
+  gap: space('1');
+  padding: space('4') space('5');
+  @include panel;
+
+  dt {
+    color: color('text-muted');
+    font-size: font-size('sm');
+  }
+
+  dd {
+    margin: 0;
+    color: color('ink');
+    font-size: font-size('2xl');
+    font-weight: weight('bold');
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+}
+
+.kpiOf {
+  color: color('text-muted');
+  font-size: font-size('sm');
+  font-weight: weight('medium');
+  letter-spacing: 0;
+}
+
+.kpiDetail {
+  color: color('text-subtle');
+  font-size: font-size('xs');
+}
+
+.kpiTrack {
+  display: block;
+  height: 0.5rem;
+  margin-top: space('1');
+  overflow: hidden;
+  border-radius: radius('pill');
+  background: color('surface-sunken');
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: radius('pill');
+    background: color('primary');
+  }
+}
+
+.toneprimary {
+  color: color('primary-strong') !important;
+}
+
+.tonesuccess {
+  color: color('success') !important;
+}
+
+.tonedanger {
+  color: color('danger') !important;
+}
+
+.tonewarning {
+  color: color('warning') !important;
+}
+
+// --- Semana ----------------------------------------------------------------
+
+.weekNav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: space('3');
+  margin-bottom: space('5');
+}
+
+.weekNavButtons {
+  display: flex;
+  align-items: center;
+  gap: space('2');
+}
+
+.prev svg {
+  transform: rotate(180deg);
+}
+
+.weekTitle {
+  padding-inline: space('2');
+  font-size: font-size('lg');
+}
+
+.rejectedBanner {
+  display: grid;
+  gap: space('3');
+  margin-bottom: space('6');
+  padding: space('4') space('5');
+  border-radius: radius('lg');
+  background: color('danger-soft');
+}
+
+.rejectedHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: space('2');
+
+  h2 {
+    font-size: font-size('md');
+  }
+
+  span {
+    color: color('text-muted');
+    font-size: font-size('sm');
+  }
+}
+
+.rejectedList {
+  @include reset-list;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: space('2');
+}
+
+.rejectedItem {
+  @include reset-button;
+  display: grid;
+  gap: 0.125rem;
+  width: 100%;
+  height: 100%;
+  padding: space('3') space('4');
+  border-radius: radius('md');
+  background: color('surface');
+  color: color('text');
+  font-size: font-size('sm');
+  text-align: left;
+  @include focus-ring;
+
+  &:hover {
+    box-shadow: shadow('raised');
+  }
+}
+
+.rejectedMeta {
+  color: color('danger');
+  font-size: font-size('xs');
+  font-weight: weight('bold');
+}
+
+.rejectedBy {
+  color: color('text-subtle');
+  font-size: font-size('xs');
+}
+
+.gridWrap,
+.tableWrap {
+  overflow-x: auto;
+}
+
+.grid {
+  width: 100%;
+  min-width: 58rem;
+  border-collapse: collapse;
+  font-size: font-size('sm');
+
+  th,
+  td {
+    padding: space('2');
+    border-bottom: 1px solid color('surface-sunken');
+    text-align: center;
+    vertical-align: top;
+  }
+
+  thead th {
+    padding-block: space('3');
+    border-bottom-color: color('border');
+    color: color('text-muted');
+    font-size: font-size('xs');
+    font-weight: weight('semibold');
+    white-space: nowrap;
+  }
+
+  tfoot th,
+  tfoot td {
+    background: color('page');
+    color: color('ink');
+    font-weight: weight('bold');
+    border-bottom: 0;
+  }
+}
+
+.projectCol {
+  min-width: 14rem;
+  padding-inline: space('5') !important;
+  text-align: left !important;
+}
+
+.projectName {
+  display: block;
+  color: color('ink');
+  font-size: font-size('sm');
+  font-weight: weight('semibold');
+}
+
+.projectCode {
+  display: block;
+  color: color('text-subtle');
+  font-size: font-size('xs');
+  font-weight: weight('regular');
+}
+
+.today {
+  color: color('primary-strong') !important;
+}
+
+.holidayHead {
+  color: color('warning') !important;
+}
+
+.holidayName {
+  display: block;
+  font-weight: weight('regular');
+}
+
+.holidayCell {
+  background: color('warning-soft');
+}
+
+.totalCol {
+  padding-inline: space('5') !important;
+  color: color('ink');
+  font-weight: weight('bold');
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.cell {
+  min-width: 5.5rem;
+}
+
+.chip {
+  @include reset-button;
+  display: grid;
+  gap: 0.0625rem;
+  width: 100%;
+  margin-bottom: space('1');
+  padding: space('2') space('1');
+  border-radius: radius('md');
+  text-align: center;
+  @include focus-ring;
+}
+
+button.chip:hover {
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+
+.chipTime {
+  font-size: font-size('md');
+  font-weight: weight('bold');
+}
+
+.chipStatus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+}
+
+.chip-approved {
+  background: color('success-soft');
+  color: color('success');
+}
+
+.chip-submitted {
+  background: color('primary-soft');
+  color: color('primary-strong');
+}
+
+.chip-draft {
+  background: color('surface-sunken');
+  color: color('text-muted');
+
+  .chipTime {
+    color: color('ink');
+  }
+}
+
+.chip-rejected {
+  background: color('danger-soft');
+  color: color('danger');
+}
+
+.add {
+  @include reset-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px dashed color('border-strong');
+  border-radius: radius('md');
+  color: color('text-subtle');
+  @include focus-ring;
+
+  &:hover {
+    border-color: color('primary');
+    color: color('primary');
+    background: color('primary-faint');
+  }
+}
+
+// --- Gráficos --------------------------------------------------------------
+
+.charts {
+  display: grid;
+  align-items: start;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+  gap: space('4');
+  margin-bottom: space('6');
+}
+
+.chartCard {
+  display: grid;
+  align-content: start;
+  gap: space('3');
+  padding: space('5');
+  @include panel;
+}
+
+.standalone {
+  margin-bottom: space('6');
+}
+
+.chartHeader {
+  display: grid;
+  gap: 0.125rem;
+
+  h2 {
+    font-size: font-size('lg');
+  }
+
+  p {
+    color: color('text-muted');
+    font-size: font-size('sm');
+  }
+}
+
+// --- Formulario ------------------------------------------------------------
+
+.modalFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: space('2');
+  width: 100%;
+}
+
+.footerSpacer {
+  flex: 1;
+}
+
+.rejection {
+  display: grid;
+  gap: space('1');
+  padding: space('3') space('4');
+  border-radius: radius('md');
+  background: color('danger-soft');
+  font-size: font-size('sm');
+
+  strong {
+    color: color('danger');
+    font-size: font-size('xs');
+  }
+}
+
+.quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: space('2');
+}
+
+.quickChip {
+  @include reset-button;
+  min-height: 2.5rem;
+  padding: 0 space('3');
+  border: 1px solid color('border-strong');
+  border-radius: radius('pill');
+  background: color('surface');
+  color: color('text');
+  font-size: font-size('sm');
+  text-align: left;
+  @include focus-ring;
+
+  &:hover {
+    border-color: color('primary');
+  }
+
+  &[aria-pressed='true'] {
+    border-color: color('primary');
+    background: color('primary-soft');
+    color: color('primary-strong');
+    font-weight: weight('semibold');
+  }
+}
+
+.dayHint {
+  padding: space('3') space('4');
+  border-radius: radius('md');
+  background: color('page');
+  color: color('text-muted');
+  font-size: font-size('sm');
+}
+
+// --- Aprobaciones ----------------------------------------------------------
+
+.reviewTop {
+  display: grid;
+  gap: space('4');
+  margin-bottom: space('6');
+
+  @include up('lg') {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .kpis {
+    margin: 0;
+  }
+}
+
+.reviewToolbar {
+  align-items: center;
+}
+
+.selectionBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: space('2');
+  margin-left: auto;
+  padding: space('1') space('1') space('1') space('4');
+  border-radius: radius('md');
+  background: color('primary-soft');
+  color: color('primary-strong');
+  font-size: font-size('sm');
+  font-weight: weight('semibold');
+}
+
+.reviewTable {
+  width: 100%;
+  min-width: 56rem;
+  border-collapse: collapse;
+  font-size: font-size('sm');
+
+  th,
+  td {
+    padding: space('3');
+    border-bottom: 1px solid color('surface-sunken');
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  thead th {
+    border-bottom-color: color('border');
+    color: color('text-muted');
+    font-size: font-size('xs');
+    font-weight: weight('semibold');
+  }
+}
+
+.checkCol {
+  width: 3rem;
+  padding-left: space('5') !important;
+}
+
+.num {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.rowSelected td {
+  background: color('primary-faint');
+}
+
+.strong {
+  color: color('ink');
+  font-weight: weight('semibold');
+}
+
+.subtle {
+  display: block;
+  color: color('text-subtle');
+  font-size: font-size('xs');
+  font-weight: weight('regular');
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.rowButtons {
+  padding-right: space('5') !important;
+  text-align: right !important;
+  white-space: nowrap;
+
+  > * + * {
+    margin-left: space('1');
+  }
+}
+
+.detailRow td {
+  padding: 0 space('5') space('4') 4.5rem;
+  background: color('page');
+}
+
+.entryList {
+  @include reset-list;
+  display: grid;
+  gap: 0;
+
+  li {
+    display: grid;
+    grid-template-columns: 4.5rem 3.5rem minmax(0, 1fr);
+    gap: space('3');
+    padding: space('2') 0;
+    border-bottom: 1px solid color('border');
+  }
+}
+
+.entryDate {
+  color: color('text-muted');
+}
+
+.entryTime {
+  color: color('ink');
+  font-weight: weight('bold');
+}
+
+.entryText {
+  color: color('text');
+}
+
+.entryFlags {
+  display: block;
+  color: color('warning');
+  font-size: font-size('xs');
+  font-weight: weight('semibold');
+}
+
+// --- Reportes --------------------------------------------------------------
+
+.reportFilters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: space('3') space('4');
+  margin-bottom: space('6');
+
+  > div {
+    flex: 0 1 14rem;
+  }
+}
+
+.rangeText {
+  padding-bottom: space('3');
+  color: color('text-muted');
+  font-size: font-size('sm');
+}
+
+.footnote {
+  color: color('text-subtle');
+  font-size: font-size('xs');
+}
+
+// En el celular cada grupo de la bandeja se muestra como una tarjeta.
+@include down('md') {
+  .reviewTable {
+    min-width: 0;
+
+    thead {
+      @include visually-hidden;
+    }
+
+    tbody tr:not(.detailRow) {
+      display: grid;
+      grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+      grid-template-areas:
+        'check person hours'
+        'check project project'
+        'check period period'
+        'actions actions actions';
+      gap: 0.125rem space('2');
+      padding: space('3') space('4');
+      border-bottom: 1px solid color('surface-sunken');
+    }
+
+    tbody td {
+      padding: 0 !important;
+      border: 0;
+    }
+
+    td:nth-child(1) {
+      grid-area: check;
+    }
+
+    td:nth-child(2) {
+      grid-area: person;
+    }
+
+    td:nth-child(3) {
+      grid-area: project;
+    }
+
+    td:nth-child(4) {
+      grid-area: period;
+      color: color('text-muted');
+    }
+
+    td:nth-child(5) {
+      display: none;
+    }
+
+    td:nth-child(6) {
+      grid-area: hours;
+    }
+
+    td:nth-child(7) {
+      grid-area: actions;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: space('1');
+      margin-top: space('2');
+      text-align: left !important;
+
+      > * + * {
+        margin-left: 0;
+      }
+    }
+  }
+
+  .detailRow td {
+    display: block;
+    padding: 0 space('4') space('3') !important;
+  }
+}

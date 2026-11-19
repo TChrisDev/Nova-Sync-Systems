@@ -85,10 +85,10 @@ class ApiAccessTest extends TestCase
         $this->assertTrue($modules['access_control']['can_access']);
         $this->assertSame(['view'], $modules['access_control']['actions']);
         $this->assertFalse($modules['users']['can_access']);
-        // Un módulo activo sin permisos tampoco da acceso; uno planeado nunca.
+        // Un módulo activo sin permisos no da acceso.
         $this->assertSame('active', $modules['projects']['status']);
         $this->assertFalse($modules['projects']['can_access']);
-        $this->assertSame('planned', $modules['timesheets']['status']);
+        $this->assertSame('active', $modules['timesheets']['status']);
         $this->assertFalse($modules['timesheets']['can_access']);
     }
 

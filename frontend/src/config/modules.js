@@ -11,6 +11,7 @@ export const MODULE_ICONS = {
   clients: 'briefcase',
   projects: 'folder',
   timesheets: 'clock',
+  assets: 'server',
 };
 
 // El orden define la posición en el tablero de la landing (3 columnas):
@@ -56,8 +57,15 @@ export const PUBLIC_MODULES = [
     code: 'timesheets',
     symbol: 'Hr',
     name: 'Registro de horas',
-    status: 'planned',
+    status: 'active',
     description: 'Horas 24/7 con aprobación del líder y consumo de cada contrato en tiempo real.',
+  },
+  {
+    code: 'assets',
+    symbol: 'Am',
+    name: 'Activos y monitoreo',
+    status: 'active',
+    description: 'Inventario de equipos de cada cliente, mapa de red, cobertura de monitoreo, sensores IoT, alertas e incidentes.',
   },
 ];
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AssetController;
 use App\Http\Controllers\Api\V1\AuditLogController;
 use App\Http\Controllers\Api\V1\CapacityController;
 use App\Http\Controllers\Api\V1\ClientContactController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\Api\V1\ContractController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\MeController;
 use App\Http\Controllers\Api\V1\ModuleController;
+use App\Http\Controllers\Api\V1\MonitoringController;
 use App\Http\Controllers\Api\V1\PermissionController;
 use App\Http\Controllers\Api\V1\ProjectController;
 use App\Http\Controllers\Api\V1\ReferenceDataController;
@@ -77,6 +79,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         });
 
         Route::get('contracts', [ContractController::class, 'index'])->name('contracts.index');
+        Route::get('contracts/overview', [ContractController::class, 'overview'])->name('contracts.overview');
         Route::get('contracts/export', [ContractController::class, 'export'])->name('contracts.export');
         Route::post('contracts', [ContractController::class, 'store'])->name('contracts.store');
         Route::get('contracts/{contract}', [ContractController::class, 'show'])->whereNumber('contract')->name('contracts.show');
@@ -90,6 +93,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
 
         Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
         Route::post('projects', [ProjectController::class, 'store'])->name('projects.store');
+        Route::get('projects/overview', [ProjectController::class, 'overview'])->name('projects.overview');
         Route::get('projects/leaders', [ProjectController::class, 'leaders'])->name('projects.leaders');
         Route::get('projects/{project}', [ProjectController::class, 'show'])->whereNumber('project')->name('projects.show');
         Route::put('projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
@@ -110,9 +114,40 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::get('staff', [StaffController::class, 'index'])->name('staff.index');
         Route::put('staff/{user}', [StaffController::class, 'update'])->name('staff.update');
 
+        // Activos y monitoreo: todo exige assets.view; cada escritura revisa su permiso.
+        Route::middleware('permission:assets.view')->group(function () {
+            Route::get('assets/clients', [AssetController::class, 'clients'])->name('assets.clients');
+            Route::get('assets/dashboard', [AssetController::class, 'dashboard'])->name('assets.dashboard');
+            Route::get('assets/map', [AssetController::class, 'map'])->name('assets.map');
+            Route::get('assets/coverage', [AssetController::class, 'coverage'])->name('assets.coverage');
+            Route::post('assets/import', [AssetController::class, 'import'])->middleware('throttle:20,1')->name('assets.import');
+            Route::get('assets', [AssetController::class, 'index'])->name('assets.index');
+            Route::post('assets', [AssetController::class, 'store'])->name('assets.store');
+            Route::get('assets/{asset}', [AssetController::class, 'show'])->whereNumber('asset')->name('assets.show');
+            Route::put('assets/{asset}', [AssetController::class, 'update'])->whereNumber('asset')->name('assets.update');
+            Route::delete('assets/{asset}', [AssetController::class, 'destroy'])->whereNumber('asset')->name('assets.destroy');
+
+            Route::get('telemetry/sensors', [MonitoringController::class, 'sensors'])->name('telemetry.sensors');
+            Route::get('telemetry/series', [MonitoringController::class, 'series'])->name('telemetry.series');
+            Route::get('alerts', [MonitoringController::class, 'alerts'])->name('alerts.index');
+            Route::get('alert-rules', [MonitoringController::class, 'rules'])->name('alert-rules.index');
+            Route::post('alert-rules', [MonitoringController::class, 'storeRule'])->name('alert-rules.store');
+            Route::post('alert-rules/evaluate', [MonitoringController::class, 'evaluate'])->name('alert-rules.evaluate');
+            Route::put('alert-rules/{rule}', [MonitoringController::class, 'updateRule'])->whereNumber('rule')->name('alert-rules.update');
+            Route::delete('alert-rules/{rule}', [MonitoringController::class, 'destroyRule'])->whereNumber('rule')->name('alert-rules.destroy');
+
+            Route::get('incidents', [MonitoringController::class, 'incidents'])->name('incidents.index');
+            Route::post('incidents', [MonitoringController::class, 'storeIncident'])->name('incidents.store');
+            Route::get('incidents/{incident}', [MonitoringController::class, 'incident'])->whereNumber('incident')->name('incidents.show');
+            Route::patch('incidents/{incident}', [MonitoringController::class, 'updateIncident'])->whereNumber('incident')->name('incidents.update');
+        });
+
         Route::get('time-entries', [TimeEntryController::class, 'index'])->name('time-entries.index');
         Route::get('time-entries/summary', [TimeEntryController::class, 'summary'])->name('time-entries.summary');
         Route::get('time-entries/projects', [TimeEntryController::class, 'projects'])->name('time-entries.projects');
+        Route::get('time-entries/report', [TimeEntryController::class, 'report'])->name('time-entries.report');
+        Route::get('time-entries/review-queue', [TimeEntryController::class, 'reviewQueue'])->name('time-entries.review-queue');
+        Route::get('time-entries/export', [TimeEntryController::class, 'export'])->middleware('throttle:10,1')->name('time-entries.export');
         Route::post('time-entries', [TimeEntryController::class, 'store'])->name('time-entries.store');
         Route::post('time-entries/submit', [TimeEntryController::class, 'submit'])->name('time-entries.submit');
         Route::post('time-entries/approve', [TimeEntryController::class, 'approve'])->name('time-entries.approve');

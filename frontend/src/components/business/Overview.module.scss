@@ -1,0 +1,93 @@
+@use '../../styles/abstracts' as *;
+
+// Piezas de las páginas de indicadores (Clientes y contratos, Proyectos).
+// Los KPI y las tarjetas de gráficos vienen de Timesheets.module.scss.
+
+.wide {
+  @include up('lg') {
+    grid-column: 1 / -1;
+  }
+}
+
+.list {
+  @include reset-list;
+  display: grid;
+  gap: space('2');
+}
+
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: space('1') space('3');
+  padding: space('3') space('4');
+  border-radius: radius('md');
+  background: color('page');
+  font-size: font-size('sm');
+
+  a {
+    color: color('ink');
+    font-weight: weight('semibold');
+    text-decoration: none;
+    border-radius: radius('xs');
+    @include focus-ring;
+
+    &:hover {
+      color: color('primary');
+      text-decoration: underline;
+    }
+  }
+}
+
+.itemDanger {
+  background: color('danger-soft');
+}
+
+.itemWarning {
+  background: color('warning-soft');
+}
+
+.meta {
+  display: block;
+  color: color('text-muted');
+  font-size: font-size('xs');
+}
+
+.empty {
+  color: color('text-muted');
+  font-size: font-size('sm');
+}
+
+.note {
+  color: color('text-subtle');
+  font-size: font-size('xs');
+}
+
+.subhead {
+  margin-top: space('2');
+  color: color('ink');
+  font-size: font-size('md');
+}
+
+.link {
+  justify-self: start;
+  color: color('primary');
+  font-size: font-size('sm');
+  font-weight: weight('semibold');
+  text-decoration: none;
+  border-radius: radius('xs');
+  @include focus-ring;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Columna de tarjetas apiladas dentro de la rejilla de gráficos.
+.stack {
+  display: grid;
+  align-content: start;
+  gap: space('4');
+  min-width: 0;
+}

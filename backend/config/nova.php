@@ -58,6 +58,36 @@ return [
         'expiring_days' => (int) env('NOVA_CONTRACT_EXPIRING_DAYS', 30),
     ],
 
+    'assets' => [
+        // Controles de monitoreo que se esperan en cada equipo de red.
+        'monitoring_controls' => [
+            'syslog' => ['label' => 'Syslog', 'transport' => 'UDP 514 / TCP 6514', 'purpose' => 'Cambios de configuración, caídas de interfaces, autenticación y bloqueos del firewall.'],
+            'snmp' => ['label' => 'SNMP', 'transport' => 'UDP 161 y 162', 'purpose' => 'CPU, memoria, tráfico, errores y avisos de enlace caído (preferir SNMPv3).'],
+            'ntp' => ['label' => 'NTP', 'transport' => 'UDP 123', 'purpose' => 'Misma hora en todos los equipos para correlacionar eventos.'],
+            'ssh' => ['label' => 'SSH', 'transport' => 'TCP 22', 'purpose' => 'Administración cifrada y auditable, en lugar de Telnet.'],
+            'netflow' => ['label' => 'NetFlow', 'transport' => 'UDP 2055', 'purpose' => 'Quién habla con quién y cuánto: consumo y anomalías de tráfico.'],
+        ],
+
+        // Tipos de lectura de los sensores (como vienen del archivo de IoT).
+        'reading_types' => [
+            'TEMP' => ['label' => 'Temperatura', 'unit' => '°C'],
+            'HUMIDITY' => ['label' => 'Humedad', 'unit' => '%'],
+            'SMOKE' => ['label' => 'Humo', 'unit' => 'PPM'],
+            'STREAM' => ['label' => 'Video', 'unit' => 'FPS'],
+            'DETECTION' => ['label' => 'Movimiento', 'unit' => ''],
+            'STATE' => ['label' => 'Puerta', 'unit' => ''],
+            'POWER' => ['label' => 'Consumo eléctrico', 'unit' => 'W'],
+        ],
+
+        // Las alertas de varios sensores dentro de esta ventana (minutos) se
+        // agrupan en un mismo incidente: tres sensores de humo al mismo tiempo
+        // son un evento, no tres.
+        'incident_window_minutes' => (int) env('NOVA_INCIDENT_WINDOW_MINUTES', 10),
+
+        // Tamaño máximo del Excel que se puede subir (KB).
+        'max_import_kb' => (int) env('NOVA_ASSET_IMPORT_MAX_KB', 10240),
+    ],
+
     'timesheets' => [
         // Las horas se registran en bloques de 15 minutos.
         'step_minutes' => 15,
@@ -80,6 +110,11 @@ return [
         'financials' => 'Ver costos',
         'approve' => 'Aprobar',
         'approve_any' => 'Aprobar cualquiera',
+        // Acciones propias del módulo de activos y monitoreo
+        'import' => 'Importar',
+        'technical' => 'Ver datos técnicos',
+        'monitor' => 'Reglas de alerta',
+        'incidents' => 'Atender incidentes',
     ],
 
     /*
@@ -165,13 +200,30 @@ return [
             'name' => 'Registro de horas',
             'description' => 'Registro de horas 24/7, envío, aprobación y consumo de contratos.',
             'icon' => 'clock',
-            'status' => 'planned',
+            'status' => 'active',
             'sort_order' => 120,
             'actions' => [
                 'create' => 'Registrar sus propias horas',
                 'view' => 'Consultar las horas de todos los consultores',
                 'approve' => 'Aprobar horas de los proyectos que lidera',
                 'approve_any' => 'Aprobar horas de cualquier proyecto',
+            ],
+        ],
+        'assets' => [
+            'name' => 'Activos y monitoreo',
+            'description' => 'Inventario de equipos de cada cliente, mapa de red, cobertura de monitoreo, telemetría IoT, alertas e incidentes.',
+            'icon' => 'server',
+            'status' => 'active',
+            'sort_order' => 130,
+            'actions' => [
+                'view' => 'Consultar inventario, mapa, telemetría e incidentes',
+                'create' => 'Registrar equipos',
+                'update' => 'Editar equipos',
+                'delete' => 'Eliminar equipos',
+                'import' => 'Importar inventario y lecturas desde Excel',
+                'technical' => 'Ver IP, MAC y seriales de los equipos',
+                'monitor' => 'Crear y editar reglas de alerta',
+                'incidents' => 'Abrir, asignar y cerrar incidentes',
             ],
         ],
     ],

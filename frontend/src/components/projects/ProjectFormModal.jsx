@@ -16,7 +16,7 @@ const EMPTY = { contract_id: '', leader_id: '', name: '', kind: 'project', site_
  * activo) y el líder; al editar esos dos no se tocan aquí: el contrato no
  * cambia nunca y el líder tiene su propia acción.
  */
-export function ProjectFormModal({ open, project, presetContractId, onClose, onSaved }) {
+export function ProjectFormModal({ open, project, presetContractId, preset, onClose, onSaved }) {
   const editing = Boolean(project);
   const toast = useToast();
   const reference = useReferenceData();
@@ -43,9 +43,9 @@ export function ProjectFormModal({ open, project, presetContractId, onClose, onS
             budget_hours: project.budget_minutes ? String(project.budget_minutes / 60) : '',
             description: project.description ?? '',
           }
-        : { ...EMPTY, contract_id: presetContractId ? String(presetContractId) : '' },
+        : { ...EMPTY, contract_id: presetContractId ? String(presetContractId) : '', ...(preset ?? {}) },
     );
-  }, [open, editing, project, presetContractId]);
+  }, [open, editing, project, presetContractId, preset]);
 
   // Solo al crear: contratos donde se puede abrir un proyecto y posibles líderes.
   useEffect(() => {

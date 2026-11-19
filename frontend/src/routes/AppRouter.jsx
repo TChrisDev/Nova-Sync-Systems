@@ -1,6 +1,8 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { FullPageStatus } from '../components/ui/FullPageStatus';
+import { useAuth } from '../hooks/useAuth';
+import ForbiddenPage from '../pages/ForbiddenPage';
 import LandingPage from '../pages/LandingPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -20,10 +22,37 @@ const ClientsPage = lazy(() => import('../pages/ClientsPage'));
 const ClientDetailPage = lazy(() => import('../pages/ClientDetailPage'));
 const ContractsPage = lazy(() => import('../pages/ContractsPage'));
 const ContractDetailPage = lazy(() => import('../pages/ContractDetailPage'));
+const CommercialOverviewPage = lazy(() => import('../pages/CommercialOverviewPage'));
+const ProjectsOverviewPage = lazy(() => import('../pages/ProjectsOverviewPage'));
 const ProjectsPage = lazy(() => import('../pages/ProjectsPage'));
 const ProjectDetailPage = lazy(() => import('../pages/ProjectDetailPage'));
 const CapacityPage = lazy(() => import('../pages/CapacityPage'));
 const StaffPage = lazy(() => import('../pages/StaffPage'));
+const TimesheetPage = lazy(() => import('../pages/TimesheetPage'));
+const TimesheetReviewPage = lazy(() => import('../pages/TimesheetReviewPage'));
+const TimesheetReportsPage = lazy(() => import('../pages/TimesheetReportsPage'));
+const AssetsDashboardPage = lazy(() => import('../pages/AssetsDashboardPage'));
+const AssetsInventoryPage = lazy(() => import('../pages/AssetsInventoryPage'));
+const NetworkMapPage = lazy(() => import('../pages/NetworkMapPage'));
+const CoveragePage = lazy(() => import('../pages/CoveragePage'));
+const TelemetryPage = lazy(() => import('../pages/TelemetryPage'));
+const IncidentsPage = lazy(() => import('../pages/IncidentsPage'));
+const IncidentDetailPage = lazy(() => import('../pages/IncidentDetailPage'));
+
+const APPROVERS = ['timesheets.approve', 'timesheets.approve_any'];
+const REPORT_VIEWERS = ['timesheets.view', 'timesheets.approve', 'timesheets.approve_any'];
+
+/**
+ * Entrada del módulo de horas: quien registra ve sus horas; quien solo
+ * aprueba o consulta (sin registrar) va directo a su pantalla.
+ */
+function TimesheetsHome() {
+  const { can, canAny } = useAuth();
+  if (can('timesheets.create')) return <TimesheetPage />;
+  if (canAny(APPROVERS)) return <Navigate to="/app/timesheets/review" replace />;
+  if (canAny(REPORT_VIEWERS)) return <Navigate to="/app/timesheets/reports" replace />;
+  return <ForbiddenPage />;
+}
 
 export function AppRouter() {
   return (
@@ -72,6 +101,7 @@ export function AppRouter() {
               />
               {/* Clientes y contratos: la API vuelve a validar cada permiso. */}
               {[
+                ['commercial', <CommercialOverviewPage key="commercial" />],
                 ['clients', <ClientsPage key="clients" />],
                 ['clients/:clientId', <ClientDetailPage key="client" />],
                 ['contracts', <ContractsPage key="contracts" />],
@@ -81,12 +111,50 @@ export function AppRouter() {
               ))}
               {/* Proyectos y capacidad: cada pantalla con el permiso que la API exige. */}
               {[
+                ['projects-overview', <ProjectsOverviewPage key="projects-overview" />, ['projects.view', 'projects.lead']],
                 ['projects', <ProjectsPage key="projects" />, ['projects.view', 'projects.lead']],
                 ['projects/:projectId', <ProjectDetailPage key="project" />, ['projects.view', 'projects.lead']],
                 ['capacity', <CapacityPage key="capacity" />, ['projects.capacity']],
                 ['staff', <StaffPage key="staff" />, ['projects.staff']],
               ].map(([path, page, anyOf]) => (
                 <Route key={path} path={path} element={<RequirePermission anyOf={anyOf}>{page}</RequirePermission>} />
+              ))}
+              {/* Registro de horas: cada pantalla con el permiso que la API exige. */}
+              <Route
+                path="timesheets"
+                element={
+                  <RequirePermission anyOf={['timesheets.create', ...REPORT_VIEWERS]}>
+                    <TimesheetsHome />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="timesheets/review"
+                element={
+                  <RequirePermission anyOf={APPROVERS}>
+                    <TimesheetReviewPage />
+                  </RequirePermission>
+                }
+              />
+              <Route
+                path="timesheets/reports"
+                element={
+                  <RequirePermission anyOf={REPORT_VIEWERS}>
+                    <TimesheetReportsPage />
+                  </RequirePermission>
+                }
+              />
+              {/* Activos y monitoreo: la API exige assets.view en todo y revisa cada escritura. */}
+              {[
+                ['assets', <AssetsDashboardPage key="assets" />],
+                ['assets/inventory', <AssetsInventoryPage key="inventory" />],
+                ['assets/map', <NetworkMapPage key="map" />],
+                ['assets/coverage', <CoveragePage key="coverage" />],
+                ['assets/telemetry', <TelemetryPage key="telemetry" />],
+                ['assets/incidents', <IncidentsPage key="incidents" />],
+                ['assets/incidents/:incidentId', <IncidentDetailPage key="incident" />],
+              ].map(([path, page]) => (
+                <Route key={path} path={path} element={<RequirePermission anyOf={['assets.view']}>{page}</RequirePermission>} />
               ))}
               <Route path="*" element={<NotFoundPage inPanel />} />
             </Route>

@@ -19,6 +19,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Services\Projects\AllocationService;
 use App\Services\Projects\ProjectHealth;
+use App\Services\Projects\ProjectsOverview;
 use App\Services\Projects\ProjectReport;
 use App\Services\Projects\ProjectService;
 use Illuminate\Http\JsonResponse;
@@ -82,6 +83,14 @@ class ProjectController extends Controller
         $this->health->attach($projects->getCollection());
 
         return ProjectResource::collection($projects);
+    }
+
+    /** Indicadores y datos de los gráficos de Proyectos, con el alcance del listado. */
+    public function overview(Request $request, ProjectsOverview $overview): JsonResponse
+    {
+        Gate::authorize('viewAny', Project::class);
+
+        return response()->json(['data' => $overview->build($request->user())]);
     }
 
     /**

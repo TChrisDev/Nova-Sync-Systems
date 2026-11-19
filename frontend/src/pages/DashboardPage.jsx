@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { DashboardCharts } from '../components/dashboard/DashboardCharts';
 import { Button } from '../components/ui/Button';
 import { Icon } from '../components/ui/Icon';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -61,12 +62,14 @@ export default function DashboardPage() {
                   <Metric label="Pendientes de primer ingreso" value={formatNumber(data.users.pending_first_login)} detail="cuentas autorizadas" />
                 )}
                 {data.roles && <Metric label="Roles activos" value={formatNumber(data.roles.active)} detail={`de ${formatNumber(data.roles.total)} roles`} />}
-                <Metric label="Módulos disponibles" value={formatNumber(data.modules.active)} detail={`${formatNumber(data.modules.planned)} en desarrollo`} />
+                <Metric label="Módulos disponibles" value={formatNumber(data.modules.active)} detail={data.modules.planned ? `${formatNumber(data.modules.planned)} en desarrollo` : 'Todos los módulos publicados'} />
               </>
             )}
           </dl>
         </section>
       )}
+
+      <DashboardCharts />
 
       <div className={styles.columns}>
         <section className={styles.panel} aria-labelledby="my-modules">

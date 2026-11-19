@@ -36,6 +36,13 @@ class CodeGenerator
         return $this->next("project-{$year}", 'projects', $prefix, fn (int $n) => sprintf('%s%03d', $prefix, $n));
     }
 
+    public function nextIncidentCode(int $year): string
+    {
+        $prefix = "INC-{$year}-";
+
+        return $this->next("incident-{$year}", 'incidents', $prefix, fn (int $n) => sprintf('%s%03d', $prefix, $n));
+    }
+
     /**
      * @param  callable(int): string  $format
      */

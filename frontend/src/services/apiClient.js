@@ -118,6 +118,37 @@ export async function request(method, path, { query, body, signal, retryOnCsrf =
 }
 
 /**
+ * Envía archivos (multipart/form-data) con la misma sesión, CSRF y manejo de
+ * errores que el resto de la API. El navegador arma el encabezado del
+ * formulario; no se fija Content-Type a mano.
+ */
+export async function uploadFiles(path, formData, { signal } = {}) {
+  await ensureCsrfCookie();
+  const xsrf = readCookie('XSRF-TOKEN');
+  let response;
+  try {
+    response = await fetch(buildUrl(path), {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', ...(xsrf ? { 'X-XSRF-TOKEN': xsrf } : {}) },
+      body: formData,
+      credentials: 'include',
+      signal,
+    });
+  } catch (error) {
+    if (error.name === 'AbortError') throw error;
+    throw new ApiError({ status: 0, code: 'network_error', message: 'No hay conexión con el servidor. Revisa tu red e inténtalo de nuevo.' });
+  }
+
+  if (!response.ok) {
+    const error = await parseError(response);
+    if (error.status === 401 && unauthorizedHandler) unauthorizedHandler(error);
+    throw error;
+  }
+
+  return response.json();
+}
+
+/**
  * Descarga un archivo (por ejemplo, la exportación a Excel) con la misma
  * sesión y el mismo manejo de errores que el resto de la API.
  */

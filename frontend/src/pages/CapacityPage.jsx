@@ -12,12 +12,14 @@ import { useAuth } from '../hooks/useAuth';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { useReferenceData } from '../hooks/useReferenceData';
+import { BarList, ColumnChart, Legend } from '../components/timesheets/Charts';
 import { capacityService } from '../services/capacityService';
 import { cx } from '../utils/cx';
-import { formatHours, formatPercent, todayInBogota } from '../utils/format';
+import { formatHours, formatNumber, formatPercent, todayInBogota } from '../utils/format';
 import adminStyles from './AdminPage.module.scss';
 import styles from '../components/business/Business.module.scss';
 import cap from '../components/projects/Projects.module.scss';
+import ts from '../components/timesheets/Timesheets.module.scss';
 
 const shortDate = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'short' });
 const dayName = new Intl.DateTimeFormat('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -159,6 +161,8 @@ export default function CapacityPage() {
           </div>
         </dl>
       )}
+
+      {data && data.people.length > 0 && <CapacityCharts data={data} />}
 
       <section className={styles.section} aria-labelledby="grid-title">
         <header className={styles.sectionHeader}>
@@ -326,5 +330,70 @@ export default function CapacityPage() {
         }}
       />
     </>
+  );
+}
+
+/**
+ * Carga del equipo filtrado: lo asignado y lo registrado de cada semana
+ * contra la capacidad (la jornada menos los festivos), y las horas libres de
+ * esta semana por especialidad.
+ */
+function CapacityCharts({ data }) {
+  const weeks = data.weeks.map((w, i) => {
+    const sum = (field) => data.people.reduce((total, p) => total + (p.weeks[i]?.[field] ?? 0), 0);
+    return { ...w, capacity: sum('capacity_minutes'), allocated: sum('allocated_minutes'), actual: sum('actual_minutes') };
+  });
+  const label = (iso) => shortDate.format(toDate(iso)).replace('.', '');
+  const columns = weeks.map((w) => ({
+    key: w.key,
+    label: label(w.start),
+    note: w.holidays.length ? 'festivo' : undefined,
+    reference: w.capacity,
+    segments: [{ tone: w.allocated > w.capacity ? 'danger' : 'primary', value: w.allocated }],
+    tooltip: `Semana del ${label(w.start)}: ${formatHours(w.allocated)} asignadas de ${formatHours(w.capacity)} de capacidad (${formatPercent(w.capacity ? w.allocated / w.capacity : 0)}); ${formatHours(w.actual)} registradas`,
+  }));
+
+  return (
+    <div className={ts.charts}>
+      <section className={ts.chartCard} aria-labelledby="cap-chart">
+        <div className={ts.chartHeader}>
+          <h2 id="cap-chart">Asignado contra capacidad</h2>
+          <p>
+            Suma de las {data.people.length === 1 ? 'persona filtrada' : `${data.people.length} personas filtradas`}. La raya es la capacidad de la semana.
+          </p>
+        </div>
+        <Legend
+          items={[
+            { tone: 'primary', label: 'Asignado' },
+            { tone: 'danger', label: 'Por encima de la capacidad' },
+            { tone: 'ink', label: 'Capacidad', line: true },
+          ]}
+        />
+        <ColumnChart
+          columns={columns}
+          formatValue={(m) => formatNumber(Math.round(m / 60))}
+          formatTick={(m) => `${formatNumber(Math.round(m / 60))} h`}
+          unit={60}
+          ariaLabel={`Asignado contra capacidad por semana: ${columns.map((c) => c.tooltip).join('; ')}`}
+        />
+      </section>
+      <section className={ts.chartCard} aria-labelledby="cap-free">
+        <div className={ts.chartHeader}>
+          <h2 id="cap-free">Horas libres esta semana</h2>
+          <p>Por especialidad, con lo que todavía no está asignado.</p>
+        </div>
+        <BarList
+          emptyText="No hay especialidades con personas en el filtro."
+          formatValue={(m) => formatHours(m)}
+          items={data.summary.by_specialty.map((g) => ({
+            key: g.value,
+            label: g.label,
+            value: g.free_minutes_this_week,
+            detail: `de ${formatHours(g.capacity_minutes_this_week)} · ${g.people} ${g.people === 1 ? 'persona' : 'personas'}`,
+            tone: 'success',
+          }))}
+        />
+      </section>
+    </div>
   );
 }

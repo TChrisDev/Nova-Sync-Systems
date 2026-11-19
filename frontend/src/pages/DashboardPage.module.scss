@@ -197,3 +197,88 @@
   color: color('text-subtle');
   font-size: font-size('sm');
 }
+
+// --- Gráficos del panel ----------------------------------------------------
+
+.chartsRow {
+  display: grid;
+  gap: space('6');
+  margin-bottom: space('6');
+
+  @include up('lg') {
+    grid-template-columns: repeat(auto-fit, minmax(26rem, 1fr));
+  }
+}
+
+.chartBody {
+  display: grid;
+  gap: space('4');
+  padding: space('5') space('6');
+}
+
+.chartLoading {
+  display: grid;
+  gap: space('4');
+}
+
+.skeletonChart {
+  display: block;
+  height: 12rem;
+  border-radius: radius('md');
+  background: color('surface-sunken');
+}
+
+.chartEmpty,
+.chartNote {
+  color: color('text-muted');
+  font-size: font-size('sm');
+}
+
+.chartNote {
+  color: color('text-subtle');
+  font-size: font-size('xs');
+}
+
+.chartSubtitle {
+  color: color('text-muted');
+  font-size: font-size('sm');
+  font-weight: weight('semibold');
+}
+
+.miniStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: space('3');
+  margin: 0;
+
+  div {
+    padding: space('3');
+    border-radius: radius('md');
+    background: color('page');
+  }
+
+  dt {
+    color: color('text-muted');
+    font-size: font-size('xs');
+  }
+
+  dd {
+    margin: 0;
+    color: color('ink');
+    font-size: font-size('lg');
+    font-weight: weight('bold');
+    white-space: nowrap;
+  }
+}
+
+.toneSuccess {
+  color: color('success') !important;
+}
+
+.tonePrimary {
+  color: color('primary') !important;
+}
+
+.toneDanger {
+  color: color('danger') !important;
+}

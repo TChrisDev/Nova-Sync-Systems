@@ -26,6 +26,8 @@ export const AUDIT_ACTIONS = {
   'allocation.created': 'Consultor asignado',
   'time_entries.approved': 'Horas aprobadas',
   'time_entries.rejected': 'Horas rechazadas',
+  'time_entries.exported': 'Registro de horas exportado',
+  'contracts.exported': 'Contratos exportados',
 };
 
 const CONTRACT_STATUS = {
@@ -95,6 +97,9 @@ export function auditSummary(log) {
       return `${m.count} registros · ${hours(m.minutes ?? 0)}`;
     case 'time_entries.rejected':
       return `${m.count} registros · ${m.reason ?? ''}`;
+    case 'time_entries.exported':
+    case 'contracts.exported':
+      return `${m.rows ?? 0} filas${m.with_financials ? ' · con costos' : ''}`;
     default:
       return '';
   }

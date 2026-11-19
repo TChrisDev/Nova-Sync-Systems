@@ -46,6 +46,7 @@ export function ModuleRoadmap() {
             </ul>
           </div>
 
+          {planned.length > 0 && (
           <div className={styles.group}>
             <h3 className={styles.groupTitle}>
               <span className={cx(styles.marker, styles.markerPlanned)} aria-hidden="true" />
@@ -60,6 +61,7 @@ export function ModuleRoadmap() {
               Estos módulos ya forman parte de la arquitectura y del modelo de permisos; se habilitarán a medida que se publiquen.
             </p>
           </div>
+          )}
         </div>
       </div>
     </section>

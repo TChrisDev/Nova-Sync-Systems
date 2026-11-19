@@ -9,7 +9,7 @@ Responde a los problemas del caso Nexus Safe-Cloud:
 
 **Estado:**
 - **Clientes y contratos:** disponible, con pantallas.
-- **Proyectos y capacidad** y **Registro de horas:** tienen la API lista y protegida, pero todavía aparecen como *En desarrollo* porque les faltan las pantallas.
+- **Proyectos y capacidad** y **Registro de horas:** disponibles con sus pantallas. El registro de horas se describe en [timesheets-module.md](timesheets-module.md).
 
 ## 1. Parámetros de negocio
 
@@ -308,3 +308,14 @@ Los botones se muestran según los permisos que envía la API (`can`), pero cada
 - Programador de tareas activo (`* * * * * php artisan schedule:run`): abre cada mes de las mensualidades (`nova:contracts-renew`).
 - Nunca ejecutes `nova:demo` en producción (el comando se niega a hacerlo).
 - Rota el secreto de cliente antes de su vencimiento (Entra ID lo exige).
+
+
+## Indicadores con gráficos
+
+| Ruta | Permiso | Qué muestra |
+| --- | --- | --- |
+| `/app/commercial` | `clients.view` | Contratos vigentes, mensualidades del mes, horas libres en bolsas y alertas; horas aprobadas por mes y modalidad, mensualidad por línea de servicio, consumo de cada bolsa, contratos por estado y lo que pide atención (bolsas por agotarse, vencimientos). API: `GET /api/v1/contracts/overview`. Sin costos ni márgenes. |
+| `/app/projects-overview` | `projects.view` o `projects.lead` | Proyectos abiertos, alertas de salud, personas asignadas y horas de 8 semanas; horas por semana y estado, consumo del presupuesto, salud y proyectos por estado y tipo. Un líder ve solo los proyectos que lidera. API: `GET /api/v1/projects/overview`. |
+| `/app/capacity` | `projects.capacity` | Además de la cuadrícula: asignado contra capacidad por semana (marcando festivos) y horas libres por especialidad. |
+
+Todo sale de los contratos, proyectos, asignaciones y horas registradas; nada es una cifra de ejemplo.

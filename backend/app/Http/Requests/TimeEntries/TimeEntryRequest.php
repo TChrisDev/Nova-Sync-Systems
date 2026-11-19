@@ -27,6 +27,8 @@ abstract class TimeEntryRequest extends FormRequest
             'is_billable' => ['sometimes', 'boolean'],
             'is_after_hours' => ['sometimes', 'boolean'],
             'is_on_call' => ['sometimes', 'boolean'],
+            // Incidente que se atendió (opcional): debe ser del mismo cliente del proyecto.
+            'incident_id' => ['sometimes', 'nullable', 'integer', 'exists:incidents,id'],
         ];
     }
 

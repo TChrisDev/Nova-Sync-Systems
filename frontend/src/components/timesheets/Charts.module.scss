@@ -1,0 +1,209 @@
+@use '../../styles/abstracts' as *;
+
+// Colores de los gráficos: los mismos tonos de estado del resto del sistema.
+$tones: (
+  'success': color('success'),
+  'primary': color('primary'),
+  'danger': color('danger'),
+  'warning': color('warning'),
+  'neutral': color('border-strong'),
+  'ink': color('ink'),
+  'accent': color('accent'),
+);
+
+@each $name, $value in $tones {
+  .fill-#{$name} {
+    fill: $value;
+  }
+
+  .stroke-#{$name} {
+    stroke: $value;
+  }
+
+  .bg-#{$name} {
+    background: $value;
+  }
+
+  .text-#{$name} {
+    fill: $value;
+  }
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  font-family: inherit;
+}
+
+.grid {
+  stroke: color('surface-sunken');
+  stroke-width: 1;
+}
+
+.tick,
+.label {
+  fill: color('text-subtle');
+  font-size: 12px;
+}
+
+.note {
+  fill: color('warning');
+  font-size: 12px;
+  font-weight: weight('semibold');
+}
+
+.value {
+  fill: color('ink');
+  font-size: 12px;
+  font-weight: weight('bold');
+}
+
+.muted {
+  opacity: 0.55;
+}
+
+.reference,
+.capacity {
+  stroke: color('ink');
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+}
+
+.capacity {
+  stroke-dasharray: 4 3;
+}
+
+.threshold {
+  stroke: color('warning');
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+}
+
+.thresholdText {
+  fill: color('warning');
+  font-size: 12px;
+  font-weight: weight('semibold');
+}
+
+.line {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.legend {
+  @include reset-list;
+  display: flex;
+  flex-wrap: wrap;
+  gap: space('2') space('5');
+  color: color('text-muted');
+  font-size: font-size('sm');
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: space('2');
+  }
+
+  strong {
+    color: color('ink');
+  }
+}
+
+.swatch {
+  flex: none;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 3px;
+}
+
+.swatchLine {
+  height: 3px;
+  width: 1.1rem;
+  border-radius: 2px;
+}
+
+.percent {
+  color: color('text-subtle');
+}
+
+.empty {
+  color: color('text-subtle');
+  font-size: font-size('sm');
+}
+
+.barList {
+  @include reset-list;
+  display: grid;
+  gap: space('3');
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: minmax(8rem, 13rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: space('3');
+  font-size: font-size('sm');
+
+  @include down('sm') {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    .barTrack {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+}
+
+.barName {
+  @include truncate;
+  color: color('text');
+}
+
+.barDetail {
+  display: block;
+  color: color('text-subtle');
+  font-size: font-size('xs');
+  @include truncate;
+}
+
+.barTrack {
+  height: 0.85rem;
+  overflow: hidden;
+  border-radius: radius('xs');
+  background: color('surface-sunken');
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: radius('xs');
+}
+
+.barValue {
+  color: color('ink');
+  font-weight: weight('bold');
+  white-space: nowrap;
+}
+
+.stacked {
+  display: grid;
+  gap: space('3');
+}
+
+.stackedTrack {
+  display: flex;
+  height: 1.375rem;
+  overflow: hidden;
+  border-radius: radius('sm');
+  background: color('surface-sunken');
+
+  span {
+    display: block;
+    height: 100%;
+    min-width: 3px;
+  }
+}

@@ -46,6 +46,11 @@ class Client extends Model
     }
 
     /** Contactos: el principal primero y los demás en el orden en que se registraron. */
+    public function assets(): HasMany
+    {
+        return $this->hasMany(Asset::class);
+    }
+
     public function contacts(): HasMany
     {
         return $this->hasMany(ClientContact::class)->orderByDesc('is_primary')->orderBy('id');

@@ -4,6 +4,7 @@ import { api } from './apiClient';
 // autorizar en la API: aquí no se decide quién puede hacer qué.
 export const projectsService = {
   list: (params, options) => api.get('/api/v1/projects', { ...options, query: params }),
+  overview: (options) => api.get('/api/v1/projects/overview', options).then((r) => r.data),
   get: (id, options) => api.get(`/api/v1/projects/${id}`, options).then((r) => r.data),
   create: (payload) => api.post('/api/v1/projects', payload),
   update: (id, payload) => api.put(`/api/v1/projects/${id}`, payload),
