@@ -1,6 +1,5 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
-import { useAuth } from '../hooks/useAuth';
 import { FullPageStatus } from '../components/ui/FullPageStatus';
 import { useAuth } from '../hooks/useAuth';
 import ForbiddenPage from '../pages/ForbiddenPage';
