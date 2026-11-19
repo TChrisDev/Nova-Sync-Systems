@@ -32,6 +32,13 @@ const TimesheetPage = lazy(() => import('../pages/TimesheetPage'));
 const TimesheetApprovalsPage = lazy(() => import('../pages/TimesheetApprovalsPage'));
 const TimesheetSummaryPage = lazy(() => import('../pages/TimesheetSummaryPage'));
 const AccountPage = lazy(() => import('../pages/AccountPage'));
+const AssetsDashboardPage = lazy(() => import('../pages/AssetsDashboardPage'));
+const AssetsInventoryPage = lazy(() => import('../pages/AssetsInventoryPage'));
+const NetworkMapPage = lazy(() => import('../pages/NetworkMapPage'));
+const CoveragePage = lazy(() => import('../pages/CoveragePage'));
+const TelemetryPage = lazy(() => import('../pages/TelemetryPage'));
+const IncidentsPage = lazy(() => import('../pages/IncidentsPage'));
+const IncidentDetailPage = lazy(() => import('../pages/IncidentDetailPage'));
 
 const TIMESHEET_PERMISSIONS = ['timesheets.create', 'timesheets.view', 'timesheets.approve', 'timesheets.approve_any'];
 
@@ -40,13 +47,6 @@ function TimesheetHome() {
   if (can('timesheets.create')) return <TimesheetPage />;
   if (canAny(['timesheets.approve', 'timesheets.approve_any'])) return <Navigate to="/app/timesheets/approvals" replace />;
   return <Navigate to="/app/timesheets/summary" replace />;
-const AssetsDashboardPage = lazy(() => import('../pages/AssetsDashboardPage'));
-const AssetsInventoryPage = lazy(() => import('../pages/AssetsInventoryPage'));
-const NetworkMapPage = lazy(() => import('../pages/NetworkMapPage'));
-const CoveragePage = lazy(() => import('../pages/CoveragePage'));
-const TelemetryPage = lazy(() => import('../pages/TelemetryPage'));
-const IncidentsPage = lazy(() => import('../pages/IncidentsPage'));
-const IncidentDetailPage = lazy(() => import('../pages/IncidentDetailPage'));
 }
 
 export function AppRouter() {
