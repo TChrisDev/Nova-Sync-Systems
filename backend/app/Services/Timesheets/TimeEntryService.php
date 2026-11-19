@@ -8,6 +8,7 @@ use App\Enums\ContractStatus;
 use App\Enums\TimeEntryStatus;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Allocation;
+use App\Models\Incident;
 use App\Models\Project;
 use App\Models\TimeEntry;
 use App\Models\User;
@@ -40,10 +41,11 @@ class TimeEntryService
         return DB::transaction(function () use ($actor, $project, $data) {
             $this->assertDailyLimit($actor, $data['work_date'], (int) $data['minutes']);
 
-            $entry = new TimeEntry(Arr::except($data, ['project_id']));
+            $entry = new TimeEntry(Arr::except($data, ['project_id', 'incident_id']));
             $entry->forceFill([
                 'user_id' => $actor->getKey(),
                 'project_id' => $project->getKey(),
+                'incident_id' => $this->incidentFor($project, $data['incident_id'] ?? null),
                 'status' => TimeEntryStatus::Draft,
             ])->save();
 
@@ -70,7 +72,13 @@ class TimeEntryService
             $minutes = (int) ($data['minutes'] ?? $entry->minutes);
             $this->assertDailyLimit($actor, $workDate, $minutes, ignoreId: $entry->getKey());
 
-            $entry->fill(Arr::except($data, ['project_id']));
+            $entry->fill(Arr::except($data, ['project_id', 'incident_id']));
+            if (array_key_exists('incident_id', $data)) {
+                $entry->forceFill(['incident_id' => $this->incidentFor($project, $data['incident_id'])]);
+            } elseif ($entry->incident_id && $entry->project_id !== $project->getKey()) {
+                // Si cambia el proyecto, el incidente debe seguir siendo del mismo cliente.
+                $entry->forceFill(['incident_id' => $this->incidentFor($project, $entry->incident_id)]);
+            }
             $entry->forceFill([
                 'project_id' => $project->getKey(),
                 'status' => TimeEntryStatus::Draft,
@@ -180,6 +188,21 @@ class TimeEntryService
     /**
      * Reglas para poder registrar horas en un proyecto en una fecha.
      */
+    /** El incidente debe ser del mismo cliente del proyecto donde se registran las horas. */
+    private function incidentFor(Project $project, mixed $incidentId): ?int
+    {
+        if (! $incidentId) {
+            return null;
+        }
+
+        $incident = Incident::query()->find((int) $incidentId);
+        if (! $incident || $incident->client_id !== $project->contract->client_id) {
+            throw new BusinessRuleException('El incidente es de otro cliente: registra las horas en un proyecto de ese cliente.', 'incident_other_client', 422);
+        }
+
+        return $incident->getKey();
+    }
+
     private function assertCanLogTime(User $actor, Project $project, string $workDate): void
     {
         if (! $project->status->acceptsTime()) {

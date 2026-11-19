@@ -2,6 +2,7 @@ import { api, downloadFile } from './apiClient';
 
 export const contractsService = {
   list: (params, options) => api.get('/api/v1/contracts', { ...options, query: params }),
+  overview: (options) => api.get('/api/v1/contracts/overview', options).then((r) => r.data),
   get: (id, options) => api.get(`/api/v1/contracts/${id}`, options).then((r) => r.data),
   create: (payload) => api.post('/api/v1/contracts', payload),
   update: (id, payload) => api.put(`/api/v1/contracts/${id}`, payload),

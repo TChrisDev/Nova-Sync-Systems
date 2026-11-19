@@ -24,6 +24,7 @@ class TimeEntryIndexRequest extends FormRequest
             'scope' => ['sometimes', Rule::in(TimeEntryQuery::SCOPES)],
             'project_id' => ['sometimes', 'integer'],
             'user_id' => ['sometimes', 'integer'],
+            'site_id' => ['sometimes', 'integer'],
             'status' => ['sometimes', Rule::enum(TimeEntryStatus::class)],
             'from' => ['sometimes', 'date_format:Y-m-d'],
             'to' => ['sometimes', 'date_format:Y-m-d', 'after_or_equal:from'],

@@ -2,6 +2,8 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
 import { FullPageStatus } from '../components/ui/FullPageStatus';
+import { useAuth } from '../hooks/useAuth';
+import ForbiddenPage from '../pages/ForbiddenPage';
 import LandingPage from '../pages/LandingPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -21,6 +23,8 @@ const ClientsPage = lazy(() => import('../pages/ClientsPage'));
 const ClientDetailPage = lazy(() => import('../pages/ClientDetailPage'));
 const ContractsPage = lazy(() => import('../pages/ContractsPage'));
 const ContractDetailPage = lazy(() => import('../pages/ContractDetailPage'));
+const CommercialOverviewPage = lazy(() => import('../pages/CommercialOverviewPage'));
+const ProjectsOverviewPage = lazy(() => import('../pages/ProjectsOverviewPage'));
 const ProjectsPage = lazy(() => import('../pages/ProjectsPage'));
 const ProjectDetailPage = lazy(() => import('../pages/ProjectDetailPage'));
 const CapacityPage = lazy(() => import('../pages/CapacityPage'));
@@ -37,6 +41,13 @@ function TimesheetHome() {
   if (can('timesheets.create')) return <TimesheetPage />;
   if (canAny(['timesheets.approve', 'timesheets.approve_any'])) return <Navigate to="/app/timesheets/approvals" replace />;
   return <Navigate to="/app/timesheets/summary" replace />;
+const AssetsDashboardPage = lazy(() => import('../pages/AssetsDashboardPage'));
+const AssetsInventoryPage = lazy(() => import('../pages/AssetsInventoryPage'));
+const NetworkMapPage = lazy(() => import('../pages/NetworkMapPage'));
+const CoveragePage = lazy(() => import('../pages/CoveragePage'));
+const TelemetryPage = lazy(() => import('../pages/TelemetryPage'));
+const IncidentsPage = lazy(() => import('../pages/IncidentsPage'));
+const IncidentDetailPage = lazy(() => import('../pages/IncidentDetailPage'));
 }
 
 export function AppRouter() {
@@ -86,6 +97,7 @@ export function AppRouter() {
               />
               {/* Clientes y contratos: la API vuelve a validar cada permiso. */}
               {[
+                ['commercial', <CommercialOverviewPage key="commercial" />],
                 ['clients', <ClientsPage key="clients" />],
                 ['clients/:clientId', <ClientDetailPage key="client" />],
                 ['contracts', <ContractsPage key="contracts" />],
@@ -95,6 +107,7 @@ export function AppRouter() {
               ))}
               {/* Proyectos y capacidad: cada pantalla con el permiso que la API exige. */}
               {[
+                ['projects-overview', <ProjectsOverviewPage key="projects-overview" />, ['projects.view', 'projects.lead']],
                 ['projects', <ProjectsPage key="projects" />, ['projects.view', 'projects.lead']],
                 ['projects/:projectId', <ProjectDetailPage key="project" />, ['projects.view', 'projects.lead']],
                 ['capacity', <CapacityPage key="capacity" />, ['projects.capacity']],
@@ -128,6 +141,18 @@ export function AppRouter() {
                 }
               />
               <Route path="account" element={<AccountPage />} />
+              {/* Activos y monitoreo: la API exige assets.view en todo y revisa cada escritura. */}
+              {[
+                ['assets', <AssetsDashboardPage key="assets" />],
+                ['assets/inventory', <AssetsInventoryPage key="inventory" />],
+                ['assets/map', <NetworkMapPage key="map" />],
+                ['assets/coverage', <CoveragePage key="coverage" />],
+                ['assets/telemetry', <TelemetryPage key="telemetry" />],
+                ['assets/incidents', <IncidentsPage key="incidents" />],
+                ['assets/incidents/:incidentId', <IncidentDetailPage key="incident" />],
+              ].map(([path, page]) => (
+                <Route key={path} path={path} element={<RequirePermission anyOf={['assets.view']}>{page}</RequirePermission>} />
+              ))}
               <Route path="*" element={<NotFoundPage inPanel />} />
             </Route>
           </Route>

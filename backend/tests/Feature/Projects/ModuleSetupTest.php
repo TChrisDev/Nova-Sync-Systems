@@ -24,18 +24,40 @@ class ModuleSetupTest extends TestCase
 
         $this->assertSame(['medellin', 'bogota', 'remoto'], Site::query()->orderBy('sort_order')->pluck('code')->all());
         $consultant = Role::query()->where('slug', 'consultor')->firstOrFail();
-        $this->assertSame(['timesheets.create'], $consultant->permissions()->pluck('code')->all());
+        $consultantPermissions = ['assets.incidents', 'assets.technical', 'assets.view', 'timesheets.create'];
+        $this->assertSame($consultantPermissions, $consultant->permissions()->orderBy('code')->pluck('code')->all());
 
         // El administrador le da un permiso extra al rol...
         $consultant->permissions()->attach(Permission::query()->where('code', 'projects.capacity')->value('id'), ['created_at' => now()]);
 
         // ...y volver a correr el comando no lo quita.
         $this->artisan('nova:setup-projects')->expectsOutputToContain('ya existían')->assertSuccessful();
-        $this->assertCount(2, $consultant->permissions()->get());
+        $this->assertCount(5, $consultant->permissions()->get());
 
         // Solo si se pide explícitamente.
         $this->artisan('nova:setup-projects --reset-permissions')->assertSuccessful();
-        $this->assertSame(['timesheets.create'], $consultant->permissions()->pluck('code')->all());
+        $this->assertSame($consultantPermissions, $consultant->permissions()->orderBy('code')->pluck('code')->all());
+    }
+
+    #[Test]
+    public function activar_activos_agrega_sus_permisos_sin_tocar_los_demas(): void
+    {
+        $this->artisan('nova:setup-projects')->assertSuccessful();
+        $leader = Role::query()->where('slug', 'lider-de-proyecto')->firstOrFail();
+
+        // Una instalación anterior: el rol no tenía permisos de activos y el
+        // administrador le quitó la aprobación de horas.
+        $leader->permissions()->detach(Permission::query()->where('code', 'like', 'assets.%')->pluck('id'));
+        $leader->permissions()->detach(Permission::query()->where('code', 'timesheets.approve')->value('id'));
+
+        $this->artisan('nova:setup-assets')->expectsOutputToContain('Líder de proyecto')->assertSuccessful();
+
+        $codes = $leader->permissions()->pluck('code');
+        $this->assertTrue($codes->contains('assets.incidents'));
+        $this->assertFalse($codes->contains('assets.delete'));
+        $this->assertFalse($codes->contains('timesheets.approve'), 'No debe devolver permisos de otros módulos.');
+
+        $this->artisan('nova:setup-assets')->expectsOutputToContain('ya tenían')->assertSuccessful();
     }
 
     #[Test]
@@ -57,8 +79,18 @@ class ModuleSetupTest extends TestCase
         $this->assertModelMissing($permission);
 
         $this->assertSame(
-            ['access_control', 'audit', 'clients', 'projects', 'timesheets', 'users'],
+            ['access_control', 'assets', 'audit', 'clients', 'projects', 'timesheets', 'users'],
             Module::query()->orderBy('code')->pluck('code')->all(),
         );
+    }
+
+    #[Test]
+    public function migrar_deja_el_catalogo_al_dia_sin_comandos_extra(): void
+    {
+        // RefreshDatabase ya corrió las migraciones: el catálogo debe estar sincronizado.
+        $this->assertSame(ModuleStatus::Active, Module::query()->where('code', 'timesheets')->firstOrFail()->status);
+        $this->assertSame(ModuleStatus::Active, Module::query()->where('code', 'assets')->firstOrFail()->status);
+        $this->assertTrue(Permission::query()->where('code', 'assets.view')->exists());
+        $this->assertTrue(Permission::query()->where('code', 'timesheets.approve_any')->exists());
     }
 }

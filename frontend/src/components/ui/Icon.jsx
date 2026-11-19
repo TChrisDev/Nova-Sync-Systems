@@ -124,6 +124,23 @@ const PATHS = {
     </>
   ),
   arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
+  server: (
+    <>
+      <rect x="4" y="4" width="16" height="6.5" rx="1.5" />
+      <rect x="4" y="13.5" width="16" height="6.5" rx="1.5" />
+      <path d="M7.5 7.25h.01M7.5 16.75h.01M11 7.25h5M11 16.75h5" />
+    </>
+  ),
+  map: (
+    <>
+      <rect x="9.5" y="3.5" width="5" height="4" rx="1" />
+      <rect x="3.5" y="16.5" width="5" height="4" rx="1" />
+      <rect x="15.5" y="16.5" width="5" height="4" rx="1" />
+      <path d="M12 7.5v4.5M6 16.5V12h12v4.5" />
+    </>
+  ),
+  upload: <path d="M12 16V5M7 9.5l5-5 5 5M5 19.5h14" />,
+  thermometer: <path d="M10 14.5V5a2 2 0 1 1 4 0v9.5a4 4 0 1 1-4 0ZM12 9v7" />,
   download: <path d="M12 4v11M7 10l5 5 5-5M5 19.5h14" />,
 };
 

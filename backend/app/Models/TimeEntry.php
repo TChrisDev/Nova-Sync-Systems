@@ -58,6 +58,12 @@ class TimeEntry extends Model
         return $this->belongsTo(User::class)->withTrashed();
     }
 
+    /** Incidente que se estaba atendiendo (opcional). */
+    public function incident(): BelongsTo
+    {
+        return $this->belongsTo(Incident::class);
+    }
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);

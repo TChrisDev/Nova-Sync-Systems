@@ -21,7 +21,7 @@ export function ModuleBoard() {
             key={module.code}
             type="button"
             className={cx(styles.tile, styles[module.status], module.core && styles.core, selected === module.code && styles.selected)}
-            style={{ '--delay': `${[1, 0, 1, 2, 2, 2][index] * 110}ms` }}
+            style={{ '--delay': `${([1, 0, 1, 2, 2, 2][index] ?? 3) * 110}ms` }}
             aria-pressed={selected === module.code}
             onClick={() => setSelected(module.code)}
             onMouseEnter={() => setSelected(module.code)}

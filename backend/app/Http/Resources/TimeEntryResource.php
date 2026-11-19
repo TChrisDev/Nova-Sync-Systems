@@ -40,6 +40,8 @@ class TimeEntryResource extends JsonResource
                 'code' => $this->project->code,
                 'name' => $this->project->name,
             ]),
+            'incident_id' => $this->incident_id,
+            'incident' => $this->whenLoaded('incident', fn () => $this->incident ? ['id' => $this->incident->id, 'code' => $this->incident->code] : null),
             'submitted_at' => $this->submitted_at?->toIso8601String(),
             'reviewer' => $this->whenLoaded('reviewer', fn () => $this->reviewer ? ['id' => $this->reviewer->id, 'name' => $this->reviewer->name] : null),
             'reviewed_at' => $this->reviewed_at?->toIso8601String(),

@@ -51,6 +51,9 @@ class AppServiceProvider extends ServiceProvider
             'allocation' => Allocation::class,
             'staff_profile' => StaffProfile::class,
             'time_entry' => TimeEntry::class,
+            'asset' => \App\Models\Asset::class,
+            'alert_rule' => \App\Models\AlertRule::class,
+            'incident' => \App\Models\Incident::class,
         ]);
 
         // Eventos de dominio para Kafka (se registran solo si están habilitados).

@@ -43,6 +43,8 @@ export const AUDIT_ACTIONS = {
   'account.avatar_updated': 'Foto de perfil actualizada',
   'account.avatar_removed': 'Foto de perfil eliminada',
   'account.preferences_updated': 'Preferencias de cuenta actualizadas',
+  'time_entries.exported': 'Registro de horas exportado',
+  'contracts.exported': 'Contratos exportados',
 };
 
 const CONTRACT_STATUS = {
@@ -112,6 +114,9 @@ export function auditSummary(log) {
       return `${m.count} registros · ${hours(m.minutes ?? 0)}`;
     case 'time_entries.rejected':
       return `${m.count} registros · ${m.reason ?? ''}`;
+    case 'time_entries.exported':
+    case 'contracts.exported':
+      return `${m.rows ?? 0} filas${m.with_financials ? ' · con costos' : ''}`;
     default:
       return '';
   }

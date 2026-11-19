@@ -37,6 +37,7 @@ class ModuleSetup
                 'projects.view', 'projects.create', 'projects.update', 'projects.delete', 'projects.manage',
                 'projects.lead', 'projects.capacity', 'projects.staff', 'projects.financials',
                 'timesheets.create', 'timesheets.view', 'timesheets.approve', 'timesheets.approve_any',
+                'assets.view', 'assets.create', 'assets.update', 'assets.delete', 'assets.import', 'assets.technical', 'assets.monitor', 'assets.incidents',
             ],
         ],
         'subgerencia' => [
@@ -47,6 +48,7 @@ class ModuleSetup
                 'projects.view', 'projects.create', 'projects.update', 'projects.manage',
                 'projects.lead', 'projects.capacity', 'projects.staff', 'projects.financials',
                 'timesheets.create', 'timesheets.view', 'timesheets.approve', 'timesheets.approve_any',
+                'assets.view', 'assets.create', 'assets.update', 'assets.import', 'assets.technical', 'assets.monitor', 'assets.incidents',
             ],
         ],
         'comercial' => [
@@ -55,6 +57,7 @@ class ModuleSetup
             'permissions' => [
                 'clients.view', 'clients.create', 'clients.update', 'clients.manage',
                 'projects.view', 'projects.capacity',
+                'assets.view',
             ],
         ],
         'lider-de-proyecto' => [
@@ -64,12 +67,13 @@ class ModuleSetup
                 'clients.view',
                 'projects.lead', 'projects.capacity',
                 'timesheets.create', 'timesheets.approve',
+                'assets.view', 'assets.technical', 'assets.monitor', 'assets.incidents',
             ],
         ],
         'consultor' => [
             'name' => 'Consultor',
-            'description' => 'Registra y consulta sus propias horas.',
-            'permissions' => ['timesheets.create'],
+            'description' => 'Registra y consulta sus propias horas; consulta los equipos de los clientes y atiende incidentes.',
+            'permissions' => ['timesheets.create', 'assets.view', 'assets.technical', 'assets.incidents'],
         ],
     ];
 
@@ -111,6 +115,36 @@ class ModuleSetup
             }
 
             return ['sites' => $sites, 'created_roles' => $created, 'reset_roles' => $reset];
+        });
+    }
+
+    /**
+     * Para instalaciones que ya tenían las plantillas: agrega a cada plantilla
+     * los permisos de un módulo nuevo (por ejemplo "assets") sin quitar nada
+     * de lo que el Super Admin haya ajustado en los demás módulos.
+     *
+     * @return list<string> roles actualizados
+     */
+    public function grantModule(string $module): array
+    {
+        return DB::transaction(function () use ($module) {
+            $updated = [];
+
+            foreach (self::ROLES as $slug => $template) {
+                $role = Role::query()->where('slug', $slug)->first();
+                $codes = array_values(array_filter($template['permissions'], fn (string $code) => str_starts_with($code, "{$module}.")));
+                if (! $role || ! $codes) {
+                    continue;
+                }
+
+                $ids = Permission::query()->whereIn('code', $codes)->pluck('id');
+                $result = $role->permissions()->syncWithPivotValues($ids, ['created_at' => now()], detaching: false);
+                if ($result['attached']) {
+                    $updated[] = $role->name;
+                }
+            }
+
+            return $updated;
         });
     }
 }

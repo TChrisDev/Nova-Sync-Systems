@@ -4,6 +4,7 @@ export const MODULE_ROUTES = {
   clients: '/app/clients',
   projects: '/app/projects',
   timesheets: '/app/timesheets',
+  assets: '/app/assets',
   access_control: '/app/roles',
   users: '/app/users',
   audit: '/app/audit',
@@ -14,6 +15,8 @@ export const ADMIN_MODULES = new Set(['access_control', 'users', 'audit']);
 
 // Otras rutas que pertenecen al mismo módulo (para resaltar el menú).
 export const MODULE_EXTRA_PATHS = {
-  clients: ['/app/contracts'],
-  projects: ['/app/capacity', '/app/staff'],
+  clients: ['/app/clients', '/app/contracts'],
+  projects: ['/app/projects', '/app/capacity', '/app/staff'],
+  timesheets: ['/app/timesheets'],
+  assets: ['/app/assets'],
 };
