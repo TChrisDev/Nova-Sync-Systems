@@ -38,6 +38,7 @@ if [ "${1:-}" = "php-fpm" ]; then
     # pisa los ajustes que el Super Admin haya hecho después.
     php artisan nova:sync-permissions --no-interaction
     php artisan nova:setup-projects --no-interaction
+    php artisan nova:setup-assets --no-interaction
   fi
 
   # Configuración, rutas, eventos y vistas en caché (se arma con las
