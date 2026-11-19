@@ -1,8 +1,74 @@
 # Nova Sync Systems — ERP empresarial
 
-Proyecto Universitario UCompensar - Monolito Modular - ERP - Arquitectura de software.
+![Laravel 13](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)
+![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-3.9-231F20?logo=apachekafka&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![Microsoft Azure](https://img.shields.io/badge/Desplegado%20en-Azure-0078D4)
 
-Plataforma ERP modular con control de acceso por roles y permisos, inicio de sesión corporativo con Microsoft 365 (Microsoft Entra ID) o Google Workspace, y actualizaciones en tiempo real con Apache Kafka.
+ERP para **Nexus Safe-Cloud**, firma de servicios de tecnología con sedes en Bogotá y Medellín y consultores remotos. Centraliza clientes, contratos (bolsas de horas y mensualidades), proyectos, capacidad del equipo y registro de horas, con control de acceso por roles y permisos, inicio de sesión corporativo con **Microsoft 365 (Entra ID)** o **Google Workspace** y pantallas que se actualizan en tiempo real gracias a **Apache Kafka**.
+
+> **Proyecto universitario** — Arquitectura de Software (109130: Ingeniería de Software), Facultad de Ingeniería, Fundación Universitaria Compensar. Bogotá D.C., noviembre de 2026.
+
+## Demo en línea
+
+**https://novasyncsystems.eastus.cloudapp.azure.com**
+
+El acceso es solo con cuentas corporativas autorizadas por un administrador del ERP. La máquina virtual se apaga automáticamente por la noche para ahorrar costos; si no responde, puede estar detenida.
+
+## Problema y solución
+
+| Dolor de Nexus Safe-Cloud | Cómo lo resuelve Nova Sync Systems |
+| --- | --- |
+| Cartera vencida y errores de facturación | Saldos de bolsas calculados desde movimientos inmutables, historial de cada contrato y consecutivos sin duplicados |
+| Promesas comerciales sin conocer la capacidad | Disponibilidad por persona (42 h/semana) y aviso de sobreasignación que exige confirmación |
+| Falta de visibilidad de proyectos y rentabilidad | Riesgo calculado al 90 % del presupuesto de horas y costo por hora congelado al aprobar |
+| Datos duplicados entre sedes | Una sola base de datos para todas las sedes y pantallas sincronizadas en segundos |
+| Controles de acceso inconsistentes | Permisos `<módulo>.<acción>`, plantillas por cargo, reglas contra escalada de privilegios y auditoría |
+
+## Arquitectura
+
+**Monolito modular con servicios satélite dirigidos por eventos.** La API Laravel es un solo despliegue dividido en módulos con límites claros; cada cambio de negocio se guarda en una bandeja de salida (*outbox*) en la misma transacción y un servicio Node.js lo publica en Kafka. Otro servicio consume Kafka y avisa al navegador por Server-Sent Events, filtrando por los permisos de cada persona.
+
+![Vista lógica](docs/img/vista_logica.png)
+
+<details>
+<summary><b>Más vistas: procesos, despliegue actual y topología objetivo en la nube</b></summary>
+
+**Vista de procesos** — un cambio de negocio desde la petición hasta el navegador:
+
+![Vista de procesos](docs/img/vista_procesos.png)
+
+**Vista física** — despliegue actual en Microsoft Azure:
+
+![Despliegue actual](docs/img/vista_fisica_mvp.png)
+
+**Topología objetivo** — producción con zonas de disponibilidad y región secundaria:
+
+![Topología objetivo](docs/img/topologia_objetivo.png)
+
+</details>
+
+## Entregables del corte 3
+
+| Entregable | Dónde |
+| --- | --- |
+| Dossier de arquitectura (SAD): arquitectura distribuida, nube, TOGAF ADM, FinOps, vistas 4+1, ADR y contratos | [docs/entregables/EquipoX_Corte3_SAD.pdf](docs/entregables/EquipoX_Corte3_SAD.pdf) ([versión Word](docs/entregables/EquipoX_Corte3_SAD.docx)) |
+| Decisiones técnicas, modelo de datos y API | [docs/architecture.md](docs/architecture.md) |
+| Eventos de dominio y tiempo real con Kafka | [docs/realtime-kafka.md](docs/realtime-kafka.md) |
+| Módulo de Proyectos y Capacidad | [docs/projects-module.md](docs/projects-module.md) |
+| Despliegue con Docker y en Azure | [docs/docker.md](docs/docker.md) y [sección 8](#despliegue-del-proyecto-en-microsoft-azure) |
+
+## Equipo
+
+- Juan Esteban Arias Arenas
+- Stiven Nicolás Gamba Robayo
+- Christian Camilo Guerra García
+
+Docente: Ing. María Fernanda Hernández Vargas.
+
+## Tecnologías
 
 | Capa | Tecnología |
 | --- | --- |
@@ -41,7 +107,7 @@ nova-soft-systems/
 │   ├── config/nova.php          Catálogo de módulos y acciones (fuente de verdad de permisos)
 │   ├── database/migrations/     Usuarios, módulos, permisos, roles, auditoría, sedes, clientes, contratos, proyectos, horas
 │   ├── lang/es/                 Mensajes de validación en español
-│   └── tests/                   199 pruebas (autenticación Microsoft y Google, notificaciones, cuenta, autorización, roles, usuarios, clientes, contratos, proyectos, capacidad, eventos, tiempo real, comandos)
+│   └── tests/                   190 casos de prueba (autenticación Microsoft y Google, notificaciones, cuenta, autorización, roles, usuarios, clientes, contratos, proyectos, capacidad, eventos, tiempo real, comandos)
 ├── frontend/                Aplicación React (Dockerfile y docker/nginx.conf para la imagen)
 │   └── src/
 │       ├── components/          ui/ (reutilizables), landing/, admin/, roles/, users/, brand/
@@ -180,6 +246,19 @@ cd realtime && npm test                  # relay, gateway, tickets y reglas de e
 - Nunca ejecutes `nova:demo` en producción (el comando se niega a hacerlo).
 - Rota el secreto de cliente antes de su vencimiento (Entra ID lo exige) y registra el Redirect URI de producción también en Google Cloud si usas Google Workspace.
 
+### Despliegue del proyecto en Microsoft Azure
+
+La instancia del curso corre en https://novasyncsystems.eastus.cloudapp.azure.com: una máquina virtual Standard D2as_v7 (2 vCPU, 8 GiB, Ubuntu 24.04) con los siete contenedores de `docker-compose.yml` y [Caddy](https://caddyserver.com) como terminador HTTPS (certificado de Let's Encrypt automático).
+
+1. **Máquina virtual:** Ubuntu Server 24.04 LTS, 2 vCPU y 8 GiB como mínimo, disco de 64 GiB, puertos de entrada 22, 80 y 443, y una etiqueta DNS en su IP pública.
+2. **Docker:** `curl -fsSL https://get.docker.com | sudo sh` y `sudo usermod -aG docker $USER`.
+3. **Código y variables:** copia el proyecto a `~/Nova-Sync-Systems`, crea `.env` desde `.env.docker.example` y define `APP_URL=https://<dns>`, `HTTP_PORT=127.0.0.1:8080`, `SESSION_SECURE_COOKIE=true`, `SANCTUM_STATEFUL_DOMAINS=<dns>`, `TRUSTED_PROXIES=*`, las URI de redirección con `https://<dns>/auth/...`, `DB_PASSWORD` y `NOVA_REALTIME_SECRET` (`openssl rand -hex 32`), y los datos de Microsoft y Google.
+4. **Clave y arranque:** `docker compose run --rm --no-deps app php artisan key:generate --show` (pega el valor en `APP_KEY`) y `docker compose up -d --build`.
+5. **HTTPS:** `docker run -d --name caddy --restart unless-stopped --network host -v caddy_data:/data caddy:2 caddy reverse-proxy --from <dns> --to localhost:8080`.
+6. **Identidad:** registra `https://<dns>/auth/microsoft/callback` en Entra ID y `https://<dns>/auth/google/callback` en Google Cloud; crea el primer administrador con `docker compose exec app php artisan nova:super-admin <correo>`.
+
+La arquitectura completa (vistas 4+1, ADR, topología objetivo en la nube y costos) está en el dossier `docs/entregables/EquipoX_Corte3_SAD.pdf`.
+
 ## 9. Módulo de Proyectos y Capacidad
 
 **Clientes y contratos**, **Proyectos y capacidad** y **Registro de horas** están disponibles con sus pantallas. Detalle completo en [docs/projects-module.md](docs/projects-module.md).
@@ -239,5 +318,5 @@ Todo lo de la demo es ficticio, usa el dominio `@demo.nexus.test` (esas cuentas 
 
 El entorno donde se desarrolló no tenía acceso a Packagist ni al registro de npm. Por eso:
 
-- **Backend:** se instalaron las dependencias reales (Laravel 13.38, Sanctum 4.3, Socialite 5.31, PHPUnit 12.5) clonando sus versiones publicadas desde GitHub. Con ellas se ejecutaron las migraciones, los comandos y **las 162 pruebas (890 aserciones), todas exitosas tanto en SQLite como en PostgreSQL 16**. `nova:demo` se ejecutó en ambas bases de datos. `composer.lock` está incluido en el repositorio.
+- **Backend:** se instalaron las dependencias reales (Laravel 13.38, Sanctum 4.3, Socialite 5.31, PHPUnit 12.5) clonando sus versiones publicadas desde GitHub. Con ellas se ejecutaron las migraciones, los comandos y **las 162 pruebas que existían entonces (890 aserciones), todas exitosas tanto en SQLite como en PostgreSQL 16**. `nova:demo` se ejecutó en ambas bases de datos. `composer.lock` está incluido en el repositorio.
 - **Frontend:** todo el código y los estilos se compilaron sin errores con esbuild y un compilador de Sass compatible con Dart Sass, en lugar de Vite. Con esa compilación, conectada a la API Laravel real, se revisó la interfaz en navegador (escritorio y móvil) y se ejecutó un flujo completo: redirección de rutas protegidas, creación y validación de roles, asignación de permisos con confirmación, asignación de roles, desactivación de usuarios, auditoría y cierre de sesión (cookies de sesión y CSRF reales). **`npm run build` con Vite no se pudo ejecutar en ese entorno.**
